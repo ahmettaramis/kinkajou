@@ -108,3 +108,11 @@ class SignUpForm(NewPasswordMixin, forms.ModelForm):
             password=self.cleaned_data.get('new_password'),
         )
         return user
+    
+
+class AssignLessonForm(forms.Form):
+    """Form for admins to assign a tutor to a lesson"""
+
+    tutor = forms.EmailField(label="Tutor E-Mail")
+    student = forms.EmailField(label="Student E-Mail")
+    scheduled_time = forms.DateTimeField()
