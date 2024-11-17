@@ -1,0 +1,11 @@
+<!-- student_schedule.html -->
+{% extends "base.html" %}
+
+{% block content %}
+  <h2>Your Schedule</h2>
+  <ul>
+    {% for lesson in lessons %}
+      <li>{{ lesson.scheduled_time }} - {{ lesson.request.topic }} with {{ lesson.tutor.get_full_name }}</li>
+    {% endfor %}
+  </ul>
+{% endblock %}

@@ -2,6 +2,7 @@ from django.core.validators import RegexValidator
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from libgravatar import Gravatar
+from django.contrib.auth.models import User
 
 class User(AbstractUser):
     """Model used for user authentication, and team member related information."""
@@ -40,3 +41,42 @@ class User(AbstractUser):
         """Return a URL to a miniature version of the user's gravatar."""
         
         return self.gravatar(size=60)
+
+
+class UserProfile(models.Model):
+    ROLE_CHOICES = [
+        ('admin', 'Admin'),
+        ('tutor', 'Tutor'),
+        ('student', 'Student')
+    ]
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.role}"
+
+class LessonRequest(models.Model):
+    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name="lesson_requests")
+    topic = models.CharField(max_length=255)
+    preferred_time = models.DateTimeField()
+    status = models.CharField(max_length=50, choices=[('pending', 'Pending'), ('approved', 'Approved'), ('rejected', 'Rejected')])
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class TutorAvailability(models.Model):
+    tutor = models.ForeignKey(User, on_delete=models.CASCADE, related_name="availability")
+    available_time = models.DateTimeField()
+    is_booked = models.BooleanField(default=False)
+
+class Lesson(models.Model):
+    tutor = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="lessons")
+    request = models.OneToOneField(LessonRequest, on_delete=models.CASCADE)
+    scheduled_time = models.DateTimeField()
+
+class Invoice(models.Model):
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    due_date = models.DateField()
+    is_paid = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)

@@ -1,0 +1,22 @@
+<!-- invoices.html -->
+{% extends "base.html" %}
+
+{% block content %}
+  <h2>Your Invoices</h2>
+  <table>
+    <tr>
+      <th>Lesson</th>
+      <th>Amount</th>
+      <th>Due Date</th>
+      <th>Status</th>
+    </tr>
+    {% for invoice in invoices %}
+    <tr>
+      <td>{{ invoice.lesson.topic }}</td>
+      <td>{{ invoice.amount }}</td>
+      <td>{{ invoice.due_date }}</td>
+      <td>{{ invoice.is_paid|yesno:"Paid,Unpaid" }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+{% endblock %}

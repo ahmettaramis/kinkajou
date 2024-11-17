@@ -10,6 +10,11 @@ from django.views.generic.edit import FormView, UpdateView
 from django.urls import reverse
 from tutorials.forms import LogInForm, PasswordForm, UserForm, SignUpForm
 from tutorials.helpers import login_prohibited
+from .forms import LessonRequestForm
+from .models import Invoice, Lesson, LessonRequest
+from django.shortcuts import get_object_or_404
+from django.contrib.auth.views import LoginView
+from django.contrib.admin.views.decorators import staff_member_required
 
 
 @login_required
@@ -26,6 +31,28 @@ def home(request):
 
     return render(request, 'home.html')
 
+@login_required
+def role_based_redirect(request):
+    user_profile = request.user.profile
+    if user_profile.role == 'admin':
+        return redirect('admin_dashboard')
+    elif user_profile.role == 'tutor':
+        return redirect('tutor_dashboard')
+    elif user_profile.role == 'student':
+        return redirect('student_dashboard')
+    return redirect('dashboard')
+
+@login_required
+def admin_dashboard(request):
+    return render(request, 'admin_dashboard.html')
+
+@login_required
+def tutor_dashboard(request):
+    return render(request, 'tutor_dashboard.html')
+
+@login_required
+def student_dashboard(request):
+    return render(request, 'student_dashboard.html')
 
 class LoginProhibitedMixin:
     """Mixin that redirects when a user is logged in."""
@@ -84,6 +111,18 @@ class LogInView(LoginProhibitedMixin, View):
         form = LogInForm()
         return render(self.request, 'log_in.html', {'form': form, 'next': self.next})
 
+class CustomLoginView(LoginView):
+    def form_valid(self, form):
+        # Log in the user
+        login(self.request, form.get_user())
+        user_profile = self.request.user.profile
+        if user_profile.role == 'admin':
+            return redirect('admin_dashboard')
+        elif user_profile.role == 'tutor':
+            return redirect('tutor_dashboard')
+        elif user_profile.role == 'student':
+            return redirect('student_dashboard')
+        return super().form_valid(form)
 
 def log_out(request):
     """Log out the current user"""
@@ -151,3 +190,44 @@ class SignUpView(LoginProhibitedMixin, FormView):
 
     def get_success_url(self):
         return reverse(settings.REDIRECT_URL_WHEN_LOGGED_IN)
+
+def request_lesson(request):
+    if request.method == 'POST':
+        form = LessonRequestForm(request.POST)
+        if form.is_valid():
+            lesson_request = form.save(commit=False)
+            lesson_request.student = request.user
+            lesson_request.status = 'pending'
+            lesson_request.save()
+            # Send email or notification here
+            return redirect('lesson_request_success')
+    else:
+        form = LessonRequestForm()
+    return render(request, 'request_lesson.html', {'form': form})
+
+def schedule_lesson(request, lesson_id):
+    # Get lesson request, display tutor availability, and allow admins to schedule
+    pass
+
+
+def generate_invoice(lesson):
+    # Code to create an invoice for a lesson
+    pass
+
+def view_invoices(request):
+    invoices = Invoice.objects.filter(student=request.user)
+    return render(request, 'invoices.html', {'invoices': invoices})
+
+def student_schedule(request):
+    lessons = Lesson.objects.filter(request__student=request.user)
+    return render(request, 'student_schedule.html', {'lessons': lessons})
+
+def tutor_schedule(request):
+    lessons = Lesson.objects.filter(tutor=request.user)
+    return render(request, 'tutor_schedule.html', {'lessons': lessons})
+
+@staff_member_required
+def assign_tutor(request, lesson_id):
+    lesson_request = get_object_or_404(LessonRequest, id=lesson_id)
+    # Logic to assign a tutor and mark request as approved
+    return redirect('admin_dashboard')
