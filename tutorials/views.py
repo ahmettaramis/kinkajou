@@ -8,8 +8,9 @@ from django.shortcuts import redirect, render
 from django.views import View
 from django.views.generic.edit import FormView, UpdateView
 from django.urls import reverse
-from tutorials.forms import LogInForm, PasswordForm, UserForm, SignUpForm
-from tutorials.helpers import login_prohibited
+from tutorials.models import LessonRequest
+from tutorials.forms import LogInForm, PasswordForm, UserForm, SignUpForm, RequestFilterForm, RequestForm
+from tutorials.helpers import login_prohibited, admin_required
 
 
 @login_required
@@ -151,3 +152,27 @@ class SignUpView(LoginProhibitedMixin, FormView):
 
     def get_success_url(self):
         return reverse(settings.REDIRECT_URL_WHEN_LOGGED_IN)
+
+@admin_required
+class RequestListView(LoginRequiredMixin, FormView):
+    """Admin view to list and filter entries."""
+
+    form_class = RequestFilterForm
+    template_name = 'admin_entry_list.html'
+    success_url = 'admin_entry_list'  # Redirect URL after filtering
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        query = self.request.GET.get('query', '')
+        context['entries'] = LessonRequest.objects.filter(title__icontains=query).order_by('-created_at')
+        context['query'] = query
+        return context
+
+@admin_required
+class RequestUpdateView(LoginRequiredMixin, UpdateView):
+    """Admin view to update an entry."""
+
+    model = RequestForm
+    form_class = RequestForm
+    template_name = 'admin_entry_update.html'
+    success_url = 'admin_entry_list'  # Redirect URL after updating

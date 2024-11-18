@@ -2,7 +2,7 @@
 from django import forms
 from django.contrib.auth import authenticate
 from django.core.validators import RegexValidator
-from .models import User
+from .models import User, LessonRequest
 
 class LogInForm(forms.Form):
     """Form enabling registered users to log in."""
@@ -116,3 +116,16 @@ class AssignLessonForm(forms.Form):
     tutor = forms.EmailField(label="Tutor E-Mail")
     student = forms.EmailField(label="Student E-Mail")
     scheduled_time = forms.DateTimeField()
+
+
+class RequestForm(forms.ModelForm):
+    """Form for student requests"""
+
+    class Meta:
+        model = LessonRequest
+        fields = ['title', 'description', 'created_at']
+
+class RequestFilterForm(forms.Form):
+    """Form to filter lesson requests."""
+
+    query = forms.CharField(max_length=255, required=False, label='Search')
