@@ -1,0 +1,46 @@
+{% extends "base_content.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4">Create a New Request</h1>
+    <form method="post" class="form">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="{{ form.title.id_for_label }}" class="form-label">{{ form.title.label }}</label>
+            <input 
+                type="text" 
+                name="{{ form.title.name }}" 
+                id="{{ form.title.id_for_label }}" 
+                class="form-control" 
+                value="{{ form.title.value|default:'' }}" 
+                placeholder="Enter the title of your request"
+                required
+            >
+        </div>
+        <div class="mb-3">
+            <label for="{{ form.description.id_for_label }}" class="form-label">{{ form.description.label }}</label>
+            <textarea 
+                name="{{ form.description.name }}" 
+                id="{{ form.description.id_for_label }}" 
+                class="form-control" 
+                placeholder="Enter a detailed description of your request"
+                required
+            >{{ form.description.value|default:'' }}</textarea>
+        </div>
+        <div class="mb-3">
+            <label for="{{ form.date.id_for_label }}" class="form-label">{{ form.date.label }}</label>
+            <input 
+                type="date" 
+                name="{{ form.date.name }}" 
+                id="{{ form.date.id_for_label }}" 
+                class="form-control" 
+                value="{{ form.date.value|default:'' }}"
+                placeholder="Select a date"
+                required
+            >
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+        <a href="{% url 'request_list' %}" class="btn btn-secondary">Back to Requests</a>
+    </form>
+</div>
+{% endblock %}

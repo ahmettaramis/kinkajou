@@ -2,7 +2,7 @@
 from django import forms
 from django.contrib.auth import authenticate
 from django.core.validators import RegexValidator
-from .models import User
+from .models import User, StudentRequest
 
 class LogInForm(forms.Form):
     """Form enabling registered users to log in."""
@@ -108,3 +108,13 @@ class SignUpForm(NewPasswordMixin, forms.ModelForm):
             password=self.cleaned_data.get('new_password'),
         )
         return user
+
+class StudentRequestForm(forms.ModelForm):
+    class Meta:
+        model = StudentRequest
+        fields = ['title', 'description', 'date']
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control'}),
+            'date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'})  # Add date widget
+        }

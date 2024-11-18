@@ -1,5 +1,6 @@
 from django.core.validators import RegexValidator
 from django.contrib.auth.models import AbstractUser
+from django.contrib.auth import get_user_model
 from django.db import models
 from libgravatar import Gravatar
 
@@ -40,3 +41,20 @@ class User(AbstractUser):
         """Return a URL to a miniature version of the user's gravatar."""
         
         return self.gravatar(size=60)
+
+User = get_user_model()
+
+class StudentRequest(models.Model):
+    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name="requests")
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    date = models.DateField(null=True, blank=True)
+    status = models.CharField(
+        max_length=20,
+        choices=[('pending', 'Pending'), ('in_progress', 'In Progress'), ('resolved', 'Resolved')],
+        default='pending'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.title} ({self.status})"

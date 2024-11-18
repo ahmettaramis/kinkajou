@@ -10,6 +10,8 @@ from django.views.generic.edit import FormView, UpdateView
 from django.urls import reverse
 from tutorials.forms import LogInForm, PasswordForm, UserForm, SignUpForm
 from tutorials.helpers import login_prohibited
+from .models import StudentRequest
+from .forms import StudentRequestForm
 
 
 @login_required
@@ -151,3 +153,21 @@ class SignUpView(LoginProhibitedMixin, FormView):
 
     def get_success_url(self):
         return reverse(settings.REDIRECT_URL_WHEN_LOGGED_IN)
+
+@login_required
+def request_list(request):
+    requests = StudentRequest.objects.filter(student=request.user)
+    return render(request, 'tutorials/request_list.html', {'requests': requests})
+
+@login_required
+def create_request(request):
+    if request.method == 'POST':
+        form = StudentRequestForm(request.POST)
+        if form.is_valid():
+            student_request = form.save(commit=False)
+            student_request.student = request.user
+            student_request.save()
+            return redirect('request_list')
+    else:
+        form = StudentRequestForm()
+    return render(request, 'tutorials/create_request.html', {'form': form})
