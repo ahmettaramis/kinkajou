@@ -7,9 +7,11 @@ from django.core.exceptions import ImproperlyConfigured
 from django.shortcuts import redirect, render
 from django.views import View
 from django.views.generic.edit import FormView, UpdateView
+from django.views.generic.list import ListView
 from django.urls import reverse
 from tutorials.forms import LogInForm, PasswordForm, UserForm, SignUpForm
 from tutorials.helpers import login_prohibited
+from .models import User, Tutor
 
 
 @login_required
@@ -151,3 +153,14 @@ class SignUpView(LoginProhibitedMixin, FormView):
 
     def get_success_url(self):
         return reverse(settings.REDIRECT_URL_WHEN_LOGGED_IN)
+    
+
+class TutorListView(ListView):
+    """View to display all tutors."""
+    
+    model = Tutor  
+    template_name = 'tutor_list.html' 
+    context_object_name = 'tutors'
+    
+    def get_queryset(self):
+        return Tutor.objects.all()

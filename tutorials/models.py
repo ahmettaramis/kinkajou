@@ -18,6 +18,12 @@ class User(AbstractUser):
     last_name = models.CharField(max_length=50, blank=False)
     email = models.EmailField(unique=True, blank=False)
 
+    ROLE_CHOICES = [
+        ('student', 'Student'),
+        ('tutor', 'Tutor'),
+    ]
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='student')
+
 
     class Meta:
         """Model options."""
@@ -40,3 +46,24 @@ class User(AbstractUser):
         """Return a URL to a miniature version of the user's gravatar."""
         
         return self.gravatar(size=60)
+    
+class Tutor(models.Model):
+    """Model for tutors, extending User"""
+    
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='tutor_profile')
+    
+    expertise = models.CharField(max_length=200, blank=True, null=True)
+    availability = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f'{self.user.username} - {self.expertise}'
+    
+class Student(models.Model):
+    """Model for students, extending User"""
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='student_profile')
+    tutor = models.ForeignKey('Tutor', related_name='students', 
+                              on_delete=models.SET_NULL, null = True)
+    
+    def __str__(self):
+        return f"{self.user.username}"

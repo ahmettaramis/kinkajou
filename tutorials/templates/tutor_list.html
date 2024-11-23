@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>List of Tutors</title>
+</head>
+<body>
+    <h1>Available Tutors</h1>
+    <ul>
+        {% for tutor in tutors %}
+            <li>
+                {{ tutor.user.first_name }} {{ tutor.user.last_name }} - {{ tutor.expertise }}
+                <br>
+                Availability: {{ tutor.availability }}
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
