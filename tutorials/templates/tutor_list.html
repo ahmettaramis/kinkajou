@@ -5,6 +5,17 @@
 </head>
 <body>
     <h1>Available Tutors</h1>
+    
+    <form method="GET" action="{% url 'tutors' %}">
+        <label for="expertise">Expertise:</label>
+        <input type="text" id="expertise" name="expertise" value="{{ request.GET.expertise }}">
+        
+        <label for="availability">Availability:</label>
+        <input type="text" id="availability" name="availability" value="{{ request.GET.availability }}">
+        
+        <button type="submit">Search</button>
+    </form>
+
     <ul>
         {% for tutor in tutors %}
             <li>
@@ -12,6 +23,8 @@
                 <br>
                 Availability: {{ tutor.availability }}
             </li>
+        {% empty %}
+            <p>No tutors found matching your criteria.</p>
         {% endfor %}
     </ul>
 </body>

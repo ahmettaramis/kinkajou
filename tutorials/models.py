@@ -63,7 +63,7 @@ class Student(models.Model):
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='student_profile')
     tutor = models.ForeignKey('Tutor', related_name='students', 
-                              on_delete=models.SET_NULL, null = True)
+                              on_delete=models.SET_NULL, null = True, blank = True)
     
     def __str__(self):
         return f"{self.user.username}"

@@ -163,4 +163,10 @@ class TutorListView(ListView):
     context_object_name = 'tutors'
     
     def get_queryset(self):
-        return Tutor.objects.all()
+        queryset = super().get_queryset()
+        expertise = self.request.GET.get('expertise', '')
+        
+        if expertise:
+            queryset = queryset.filter(expertise__icontains=expertise)
+
+        return queryset
