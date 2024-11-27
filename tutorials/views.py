@@ -180,25 +180,25 @@ def create_lesson_request(request):
             return redirect('student_requests')
     else:
         form = LessonRequestForm()
-    return render(request, 'requests/create_request.html', {'form': form})
+    return render(request, 'lesson_requests/create_request.html', {'form': form})
 
 # Student: View Own Requests
 @login_required
 @user_passes_test(is_student)
-def student_requests(request):
+def student_view_requests(request):
     requests = LessonRequest.objects.filter(student=request.user)
-    return render(request, 'requests/student_requests.html', {'requests': requests})
+    return render(request, 'lesson_requests/student_view_requests.html', {'requests': requests})
 
 # Admin: View All Requests
 @login_required
 @user_passes_test(is_admin)
-def admin_requests(request):
+def admin_view_requests(request):
     status_filter = request.GET.get('status')  # Get status filter from query params
     if status_filter:
         requests = LessonRequest.objects.filter(status=status_filter)
     else:
         requests = LessonRequest.objects.all()
-    return render(request, 'requests/admin_requests.html', {'requests': requests})
+    return render(request, 'lesson_requests/admin_view_requests.html', {'requests': requests})
 
 # Admin: Update Request Status
 @login_required
@@ -209,5 +209,5 @@ def update_request_status(request, pk):
         new_status = request.POST.get('status')
         lesson_request.status = new_status
         lesson_request.save()
-        return redirect('admin_requests')
-    return render(request, 'requests/update_request_status.html', {'lesson_request': lesson_request})
+        return redirect('admin_view_requests')
+    return render(request, 'lesson_requests/update_request_status.html', {'lesson_request': lesson_request})
