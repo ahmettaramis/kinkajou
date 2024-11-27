@@ -7,8 +7,8 @@
     <h1>Available Tutors</h1>
     
     <form method="GET" action="{% url 'tutors' %}">
-        <label for="expertise">Expertise:</label>
-        <input type="text" id="expertise" name="expertise" value="{{ request.GET.expertise }}">
+        <label for="subjects">Subjects:</label>
+        <input type="text" id="subjects" name="subjects" value="{{ request.GET.subjects }}">
         
         <label for="availability">Availability:</label>
         <input type="text" id="availability" name="availability" value="{{ request.GET.availability }}">
@@ -19,9 +19,9 @@
     <ul>
         {% for tutor in tutors %}
             <li>
-                {{ tutor.user.first_name }} {{ tutor.user.last_name }} - {{ tutor.expertise }}
+                {{ tutor.user.first_name }} {{ tutor.user.last_name }} - {{ tutor.get_subjects_display }}
                 <br>
-                Availability: {{ tutor.availability }}
+                Availability: {% if tutor.availability %}{{ tutor.availability }}{% else %}Not specified{% endif %}
             </li>
         {% empty %}
             <p>No tutors found matching your criteria.</p>

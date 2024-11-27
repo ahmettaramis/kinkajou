@@ -4,14 +4,17 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ImproperlyConfigured
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render, get_object_or_404
 from django.views import View
 from django.views.generic.edit import FormView, UpdateView
 from django.views.generic.list import ListView
+from django.views.generic.base import TemplateView
 from django.urls import reverse
 from tutorials.forms import LogInForm, PasswordForm, UserForm, SignUpForm
 from tutorials.helpers import login_prohibited
-from .models import User, Tutor
+from .models import User, Tutor, Schedule
+from .forms import ScheduleForm
+
 
 
 @login_required
@@ -163,10 +166,44 @@ class TutorListView(ListView):
     context_object_name = 'tutors'
     
     def get_queryset(self):
-        queryset = super().get_queryset()
-        expertise = self.request.GET.get('expertise', '')
-        
-        if expertise:
-            queryset = queryset.filter(expertise__icontains=expertise)
+        queryset = Tutor.objects.all()
+        subjects = self.request.GET.get('subjects')
+        availability = self.request.GET.get('availability')
 
+        if subjects:
+            for key, value in Tutor.IGCSE_SUBJECTS:
+                if value.lower() == subjects.lower():
+                    queryset = queryset.filter(subjects=key)
+                    break
+
+        if availability:
+            queryset = queryset.filter(availability__icontains=availability)
         return queryset
+
+class TutorAvailabilityUpdateView(LoginRequiredMixin, TemplateView):
+    template_name = 'update_schedule.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        tutor = get_object_or_404(Tutor, user=self.request.user)
+        context['availability'] = Schedule.objects.filter(user=tutor.user)
+        context['form'] = ScheduleForm()
+        return context
+
+    def post(self, request, *args, **kwargs):
+        tutor = get_object_or_404(Tutor, user=request.user)
+
+        if 'delete_schedule' in request.POST:
+            schedule_id = request.POST.get('delete_schedule')
+            schedule = get_object_or_404(Schedule, id=schedule_id, user=tutor.user)
+            schedule.delete()
+            return redirect('update_schedule')
+
+        form = ScheduleForm(request.POST)
+        if form.is_valid():
+            schedule = form.save(commit=False)
+            schedule.user = tutor.user
+            schedule.save()
+            return redirect('update_schedule')
+
+        return self.render_to_response(self.get_context_data(form=form))

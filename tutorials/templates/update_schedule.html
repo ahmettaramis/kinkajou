@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Update Tutor Availability</title>
+</head>
+<body>
+    <h1>Update Availability</h1>
+
+    <h2>Existing Availability</h2>
+    <form method="post">
+        {% csrf_token %}
+        <ul>
+            {% for slot in availability %}
+                <li>
+                    {{ slot.day_of_week }}: {{ slot.start_time }} - {{ slot.end_time }}
+                    <button type="submit" name="delete_schedule" value="{{ slot.id }}">Delete</button>
+                </li>
+            {% empty %}
+                <p>No availability added yet.</p>
+            {% endfor %}
+        </ul>
+    </form>
+
+    <h2>Add New Availability</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" name="add_schedule">Add Availability</button>
+    </form>
+</body>
+</html>
