@@ -176,7 +176,7 @@ def create_lesson_request(request):
             lesson_request = form.save(commit=False)
             lesson_request.student = request.user  #Link to the logged-in student
             lesson_request.save()
-            return redirect('student_requests')
+            return redirect('student_view_requests')
     else:
         form = LessonRequestForm()
     return render(request, 'lesson_requests/create_request.html', {'form': form})
