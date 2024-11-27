@@ -40,3 +40,19 @@ class User(AbstractUser):
         """Return a URL to a miniature version of the user's gravatar."""
         
         return self.gravatar(size=60)
+
+class StudentRequest(models.Model):
+    pass
+
+class Lesson(models.Model):
+    tutor = models.ForeignKey(User, on_delete=models.CASCADE, related_name='lesson_tutor')
+    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='lesson_student')
+    description = models.CharField(max_length=255)
+    time = models.DateTimeField()
+
+class Invoice(models.Model):
+
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name='invoice', null=True, blank=True)
+    amount = models.DecimalField(max_digits=6, decimal_places=2, default=0)
+    is_paid = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)

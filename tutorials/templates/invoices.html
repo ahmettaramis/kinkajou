@@ -1,0 +1,39 @@
+{% extends "base_content.html" %}
+
+{% block content %}
+<h2> Invoices </h2>
+<table>
+    <tr>
+        <th>Lesson</th>
+        <th>Amount</th>
+        <th>Created At</th>
+        <th>Invoice Paid</th>
+        <th>Actions</th>
+    </tr>
+    {% for invoice in invoices %}
+    <tr>
+        <td>{{ invoice.lesson.description }}</td>
+        <td>£{{ invoice.amount }}</td>
+        <td>{{ invoice.created_at }}</td>
+        {% if invoice.is_paid %}
+        <td>PAID</td>
+        {% else %}
+        <td>NOT PAID</td>
+        {% endif %}
+        <td>
+            <!-- Form to toggle is_paid status -->
+            <form method="post" action="{% url 'toggle_invoice_paid' %}">
+                {% csrf_token %}
+                <input type="hidden" name="invoice_id" value="{{ invoice.id }}">
+                {% if invoice.is_paid %}
+                <button type="submit">Unmark as Paid</button>
+                {% else %}
+                <button type="submit">Mark as Paid</button>
+                {% endif %}
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+{% endblock %}

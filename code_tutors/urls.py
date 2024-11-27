@@ -29,5 +29,9 @@ urlpatterns = [
     path('password/', views.PasswordView.as_view(), name='password'),
     path('profile/', views.ProfileUpdateView.as_view(), name='profile'),
     path('sign_up/', views.SignUpView.as_view(), name='sign_up'),
-]
+    path('view_invoices/', views.view_invoices, name='invoices'),
+    path('toggle-invoice-paid/', views.toggle_invoice_paid, name='toggle_invoice_paid'),
+    path('lessons/', views.lessons_view, name='lessons'),
+    path('generate_invoice/<int:lesson_id>/', views.generate_invoice, name='generate_invoice'),
+] 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

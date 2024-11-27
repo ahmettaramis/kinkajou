@@ -4,12 +4,16 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ImproperlyConfigured
-from django.shortcuts import redirect, render
+from django.db.models import Count
+from django.http import HttpResponseNotAllowed
+from django.shortcuts import redirect, render, get_object_or_404
 from django.views import View
 from django.views.generic.edit import FormView, UpdateView
+from django.views.decorators.http import require_POST
 from django.urls import reverse
-from tutorials.forms import LogInForm, PasswordForm, UserForm, SignUpForm
-from tutorials.helpers import login_prohibited
+from tutorials.forms import LogInForm, PasswordForm, UserForm, SignUpForm, InvoiceForm
+from tutorials.helpers import login_prohibited, admin_required
+from tutorials.models import Invoice, Lesson
 
 
 @login_required
@@ -151,3 +155,42 @@ class SignUpView(LoginProhibitedMixin, FormView):
 
     def get_success_url(self):
         return reverse(settings.REDIRECT_URL_WHEN_LOGGED_IN)
+
+@admin_required
+def view_invoices(request):
+    invoices = Invoice.objects.all()
+    return render(request, 'invoices.html', {'invoices' : invoices})
+
+@require_POST
+def toggle_invoice_paid(request):
+    if request.method == 'POST':
+        invoice_id = request.POST.get('invoice_id')
+        invoice = get_object_or_404(Invoice, id=invoice_id)
+        invoice.is_paid = not invoice.is_paid
+        invoice.save()
+        return redirect('invoices')
+    
+    return HttpResponseNotAllowed(['POST'])
+
+@admin_required
+def lessons_view(request):
+    lessons = Lesson.objects.annotate(invoice_count=Count('invoice'))
+
+    return render(request, 'lessons.html', {'lessons': lessons})
+
+@admin_required
+def generate_invoice(request, lesson_id):
+    print(f"Lesson ID: {lesson_id}")
+    lesson = get_object_or_404(Lesson, id=lesson_id)
+    
+    if request.method == 'POST':
+        form = InvoiceForm(request.POST)
+        if form.is_valid():
+            invoice = form.save(commit=False)
+            invoice.lesson = lesson 
+            invoice.save()
+            return redirect('lessons') 
+    else:
+        form = InvoiceForm(initial={'lesson': lesson, 'is_paid': False})
+    
+    return render(request, 'generate_invoice.html', {'form': form, 'lesson': lesson})

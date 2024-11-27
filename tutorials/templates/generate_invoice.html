@@ -1,0 +1,31 @@
+{% extends "base_content.html" %}
+
+{% block content %}
+<h2>Generate Invoice for Lesson: {{ lesson.description }}</h2>
+
+<p><strong>Tutor:</strong> {{ lesson.tutor }}</p>
+<p><strong>Student:</strong> {{ lesson.student }}</p>
+<p><strong>Scheduled Time:</strong> {{ lesson.time }}</p>
+
+<h3>Create Invoice</h3>
+
+<form action="{% url 'generate_invoice' lesson.id %}" method="post">
+    {% csrf_token %}
+    <div>
+        <label for="amount">Amount (£):</label>
+        <input type="number" step="0.01" name="amount" id="amount" required>
+    </div>
+
+    <div>
+        <label for="is_paid">Paid?</label>
+        <input type="checkbox" name="is_paid" id="is_paid">
+    </div>
+
+    <div>
+        <button type="submit">Create Invoice</button>
+    </div>
+</form>
+
+<p><a href="{% url 'lessons' %}">Back to Lessons</a></p>
+
+{% endblock %}
