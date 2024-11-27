@@ -1,17 +1,17 @@
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import login, logout
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth import login, logout, get_user_model
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ImproperlyConfigured
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render, get_object_or_404
 from django.views import View
 from django.views.generic.edit import FormView, UpdateView
 from django.urls import reverse
 from tutorials.forms import LogInForm, PasswordForm, UserForm, SignUpForm
 from tutorials.helpers import login_prohibited
-from .models import StudentRequest
-from .forms import StudentRequestForm
+from .models import LessonRequest
+from .forms import LessonRequestForm
 
 
 @login_required
@@ -19,7 +19,10 @@ def dashboard(request):
     """Display the current user's dashboard."""
 
     current_user = request.user
-    return render(request, 'dashboard.html', {'user': current_user})
+    if request.user.is_staff:
+        return render(request, 'admin_home.html', {'user': current_user})
+    else:
+        return render(request, 'student_home.html', {'user': current_user})
 
 
 @login_prohibited
@@ -154,20 +157,57 @@ class SignUpView(LoginProhibitedMixin, FormView):
     def get_success_url(self):
         return reverse(settings.REDIRECT_URL_WHEN_LOGGED_IN)
 
-@login_required
-def request_list(request):
-    requests = StudentRequest.objects.filter(student=request.user)
-    return render(request, 'tutorials/request_list.html', {'requests': requests})
+User = get_user_model()
 
+# Check if user is a student
+def is_student(user):
+    return not user.is_staff
+
+# Check if user is an admin
+def is_admin(user):
+    return user.is_staff
+
+# Student: Submit Lesson Request
 @login_required
-def create_request(request):
+@user_passes_test(is_student)
+def create_lesson_request(request):
     if request.method == 'POST':
-        form = StudentRequestForm(request.POST)
+        form = LessonRequestForm(request.POST)
         if form.is_valid():
-            student_request = form.save(commit=False)
-            student_request.student = request.user
-            student_request.save()
-            return redirect('request_list')
+            lesson_request = form.save(commit=False)
+            lesson_request.student = request.user  # Link to the logged-in student
+            lesson_request.save()
+            return redirect('student_requests')
     else:
-        form = StudentRequestForm()
-    return render(request, 'tutorials/create_request.html', {'form': form})
+        form = LessonRequestForm()
+    return render(request, 'requests/create_request.html', {'form': form})
+
+# Student: View Own Requests
+@login_required
+@user_passes_test(is_student)
+def student_requests(request):
+    requests = LessonRequest.objects.filter(student=request.user)
+    return render(request, 'requests/student_requests.html', {'requests': requests})
+
+# Admin: View All Requests
+@login_required
+@user_passes_test(is_admin)
+def admin_requests(request):
+    status_filter = request.GET.get('status')  # Get status filter from query params
+    if status_filter:
+        requests = LessonRequest.objects.filter(status=status_filter)
+    else:
+        requests = LessonRequest.objects.all()
+    return render(request, 'requests/admin_requests.html', {'requests': requests})
+
+# Admin: Update Request Status
+@login_required
+@user_passes_test(is_admin)
+def update_request_status(request, pk):
+    lesson_request = get_object_or_404(LessonRequest, pk=pk)
+    if request.method == 'POST':
+        new_status = request.POST.get('status')
+        lesson_request.status = new_status
+        lesson_request.save()
+        return redirect('admin_requests')
+    return render(request, 'requests/update_request_status.html', {'lesson_request': lesson_request})

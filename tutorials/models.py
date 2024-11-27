@@ -44,17 +44,19 @@ class User(AbstractUser):
 
 User = get_user_model()
 
-class StudentRequest(models.Model):
-    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name="requests")
+class LessonRequest(models.Model):
+    # Fields
+    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name="lesson_requests")
     title = models.CharField(max_length=255)
     description = models.TextField()
-    date = models.DateField(null=True, blank=True)
     status = models.CharField(
-        max_length=20,
-        choices=[('pending', 'Pending'), ('in_progress', 'In Progress'), ('resolved', 'Resolved')],
-        default='pending'
+        max_length=50,
+        choices=[('unallocated', 'Unallocated'), ('allocated', 'Allocated')],
+        default='unallocated'
     )
     created_at = models.DateTimeField(auto_now_add=True)
+    lesson_date = models.DateTimeField(null=True, blank=True)
+    preferred_tutor = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="preferred_requests")
 
     def __str__(self):
         return f"{self.title} ({self.status})"

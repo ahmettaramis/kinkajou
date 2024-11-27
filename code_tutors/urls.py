@@ -19,7 +19,6 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
 from tutorials import views
-from tutorials import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -30,7 +29,11 @@ urlpatterns = [
     path('password/', views.PasswordView.as_view(), name='password'),
     path('profile/', views.ProfileUpdateView.as_view(), name='profile'),
     path('sign_up/', views.SignUpView.as_view(), name='sign_up'),
-    path('requests/', views.request_list, name='request_list'),
-    path('requests/create/', views.create_request, name='create_request'),
+     # Student views
+    path('requests/create/', views.create_lesson_request, name='create_request'),
+    path('requests/student/', views.student_requests, name='student_requests'),
+    # Admin views
+    path('requests/admin/', views.admin_requests, name='admin_requests'),
+    path('requests/<int:pk>/update-status/', views.update_request_status, name='update_request_status'),
 ]
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

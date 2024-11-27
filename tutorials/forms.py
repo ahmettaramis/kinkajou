@@ -1,8 +1,9 @@
 """Forms for the tutorials app."""
 from django import forms
 from django.contrib.auth import authenticate
+from django.contrib.auth import get_user_model
 from django.core.validators import RegexValidator
-from .models import User, StudentRequest
+from .models import User, LessonRequest
 
 class LogInForm(forms.Form):
     """Form enabling registered users to log in."""
@@ -109,12 +110,20 @@ class SignUpForm(NewPasswordMixin, forms.ModelForm):
         )
         return user
 
-class StudentRequestForm(forms.ModelForm):
+User = get_user_model()
+
+class LessonRequestForm(forms.ModelForm):
     class Meta:
-        model = StudentRequest
-        fields = ['title', 'description', 'date']
+        model = LessonRequest
+        fields = ['title', 'description', 'lesson_date', 'preferred_tutor']
         widgets = {
+            'lesson_date': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
             'title': forms.TextInput(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'class': 'form-control'}),
-            'date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'})  # Add date widget
+            'preferred_tutor': forms.Select(attrs={'class': 'form-control'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Filter tutors for the dropdown
+        self.fields['preferred_tutor'].queryset = User.objects.filter(is_staff=True)
