@@ -19,6 +19,33 @@
           <a href="{% url 'create_lesson_request' %}" class="btn btn-primary">Submit Lesson Request</a>
           <a href="{% url 'student_view_requests' %}" class="btn btn-secondary">View Your Requests</a>
         </div>
+        <div class="mt-5">
+          <h3>Your Allocated Lessons</h3>
+          {% if allocated_lessons %}
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Tutor</th>
+                  <th>Date</th>
+                  <th>Time</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for lesson in allocated_lessons %}
+                  <tr>
+                    <td>{{ lesson.title }}</td>
+                    <td>{{ lesson.tutor }}</td>
+                    <td>{{ lesson.lesson_date|date:"Y-m-d" }}</td>
+                    <td>{{ lesson.lesson_date|date:"H:i" }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          {% else %}
+            <p>You have no allocated lessons at the moment.</p>
+          {% endif %}
+        </div>
       {% endif %}
     </div>
   </div>

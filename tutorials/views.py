@@ -20,7 +20,8 @@ def dashboard(request):
     """Display the current user's dashboard."""
 
     current_user = request.user
-    return render(request, 'dashboard.html', {'user': current_user})
+    allocated_lessons = LessonRequest.objects.filter(student=request.user, status="allocated")
+    return render(request, 'dashboard.html', {'user': current_user, 'allocated_lessons': allocated_lessons})
 
 
 @login_prohibited
