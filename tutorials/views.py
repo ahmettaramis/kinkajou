@@ -12,6 +12,7 @@ from tutorials.forms import LogInForm, PasswordForm, UserForm, SignUpForm
 from tutorials.helpers import login_prohibited
 from .models import LessonRequest
 from .forms import LessonRequestForm
+from django.core.exceptions import PermissionDenied
 
 
 @login_required
@@ -19,10 +20,7 @@ def dashboard(request):
     """Display the current user's dashboard."""
 
     current_user = request.user
-    if request.user.is_staff:
-        return render(request, 'admin_home.html', {'user': current_user})
-    else:
-        return render(request, 'student_home.html', {'user': current_user})
+    return render(request, 'dashboard.html', {'user': current_user})
 
 
 @login_prohibited
@@ -175,7 +173,7 @@ def create_lesson_request(request):
         form = LessonRequestForm(request.POST)
         if form.is_valid():
             lesson_request = form.save(commit=False)
-            lesson_request.student = request.user  # Link to the logged-in student
+            lesson_request.student = request.user  #Link to the logged-in student
             lesson_request.save()
             return redirect('student_requests')
     else:
