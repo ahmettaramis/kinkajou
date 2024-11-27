@@ -1,35 +1,41 @@
 {% extends "base_content.html" %}
 
 {% block content %}
-<h2>All Lesson Requests</h2>
-<form method="get">
-    <label for="status">Filter by status:</label>
-    <select name="status" id="status" class="form-control">
-        <option value="">All</option>
-        <option value="allocated">Allocated</option>
-        <option value="unallocated">Unallocated</option>
-    </select>
-    <button type="submit" class="btn btn-primary">Filter</button>
-</form>
-
-<table class="table">
-    <tr>
-        <th>Title</th>
-        <th>Status</th>
-        <th>Student</th>
-        <th>Lesson Date</th>
-        <th>Actions</th>
-    </tr>
-    {% for request in requests %}
-    <tr>
-        <td>{{ request.title }}</td>
-        <td>{{ request.status }}</td>
-        <td>{{ request.student }}</td>
-        <td>{{ request.lesson_date }}</td>
-        <td>
-            <a href="{% url 'update_request_status' request.id %}" class="btn btn-warning">Update Status</a>
-        </td>
-    </tr>
-    {% endfor %}
-</table>
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <h2>All Lesson Requests</h2>
+                <form method="get">
+                    <label for="status">Filter by status:</label>
+                    <select name="status" id="status" class="form-control">
+                        <option value="">All</option>
+                        <option value="allocated">Allocated</option>
+                        <option value="unallocated">Unallocated</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary">Filter</button>
+                </form>
+                
+                <table class="table">
+                    <tr>
+                        <th>Title</th>
+                        <th>Status</th>
+                        <th>Student</th>
+                        <th>Lesson Date</th>
+                        <th>Actions</th>
+                    </tr>
+                    {% for request in requests %}
+                    <tr>
+                        <td>{{ request.title }}</td>
+                        <td>{{ request.status }}</td>
+                        <td>{{ request.student }}</td>
+                        <td>{{ request.lesson_date }}</td>
+                        <td>
+                            <a href="{% url 'update_request_status' request.id %}" class="btn btn-warning">Update Status</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+    </div>
 {% endblock %}
