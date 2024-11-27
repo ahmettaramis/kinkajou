@@ -1,16 +1,17 @@
-<!-- Scheduler template to render form-->
+<!-- Most basic code to create schedule -->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Schedule a Lesson</title>
+    <title>Create Lesson Schedule</title>
 </head>
 <body>
-    <h1>Schedule a Lesson</h1>
+    <h1>Create Lesson Schedule</h1>
     <form method="post">
         {% csrf_token %}
         {{ form.as_p }}
-        <button type="submit">Schedule Lesson</button>
+        <button type="submit">Create Lesson</button>
     </form>
 </body>
 </html>
