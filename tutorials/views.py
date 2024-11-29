@@ -13,6 +13,7 @@ from tutorials.helpers import login_prohibited
 from .models import LessonRequest
 from .forms import LessonRequestForm
 from django.core.exceptions import PermissionDenied
+from datetime import datetime
 
 
 @login_required
@@ -205,7 +206,29 @@ def update_request_status(request, pk):
     lesson_request = get_object_or_404(LessonRequest, pk=pk)
     if request.method == 'POST':
         new_status = request.POST.get('status')
-        lesson_request.status = new_status
-        lesson_request.save()
+        if new_status == 'allocated' and lesson_request.status != 'allocated':
+            # Allocate the lesson request and create a corresponding schedule entry
+            tutor = lesson_request.preferred_tutor  # Assuming a preferred tutor is set
+            if not tutor:
+                messages.error(request, "Please assign a preferred tutor before allocating.")
+                return render(request, 'lesson_requests/update_request_status.html', {'lesson_request': lesson_request})
+
+            # Get venue and time from the form (replace with actual inputs from the form/UI)
+            venue = request.POST.get('venue', 'Online')  # Placeholder for venue input
+            time_str = request.POST.get('time')
+            try:
+                time = datetime.strptime(time_str, "%Y-%m-%dT%H:%M")
+            except ValueError:
+                messages.error(request, "Invalid time format.")
+                return render(request, 'lesson_requests/update_request_status.html', {'lesson_request': lesson_request})
+
+            # Call the allocate method in LessonRequest
+            lesson_request.allocate(tutor=tutor, time=time, venue=venue)
+            messages.success(request, "Lesson request has been successfully allocated and scheduled.")
+        else:
+            lesson_request.status = new_status
+            lesson_request.save()
+            messages.success(request, "Lesson request status updated successfully.")
+        
         return redirect('admin_view_requests')
     return render(request, 'lesson_requests/update_request_status.html', {'lesson_request': lesson_request})
