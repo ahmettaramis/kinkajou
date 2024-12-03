@@ -4,19 +4,60 @@
   <div class="row">
     <div class="col-12">
       <h1>Welcome to your dashboard {{ user.username }}</h1>
-      {% if user.is_staff %}
+      {% if user.is_superuser and user.is_staff %}
+          <h2>Admin Dashboard</h2>
+          <div class="mt-3">
+              <a href="{% url 'admin_view_requests' %}" class="btn btn-primary">View All Submitted Requests</a>
+          </div>
+            
+          <h2>Tutor Dashboard</h2>
+          <div class="mt-3">
+          </div>
+      {% elif user.is_superuser %}
         <h2>Admin Dashboard</h2>
         <div class="mt-3">
           <a href="{% url 'admin_view_requests' %}" class="btn btn-primary">View All Submitted Requests</a>
+        </div>
+      {% elif user.is_staff %}
+        <h2>Tutor Dashboard</h2>
+        <div class="mt-3">
         </div>
       {% else %}
         <h2>Student Dashboard</h2>
         <div class="mt-3">
           <a href="{% url 'create_lesson_request' %}" class="btn btn-primary">Submit Lesson Request</a>
-          <a href="{% url 'student_view_requests' %}" class="btn btn-secondary">View Your Requests</a>
+          <a href="{% url 'student_requests' %}" class="btn btn-secondary">View Your Requests</a>
+        </div>
+        <div class="mt-5">
+          <h3>Your Allocated Lessons</h3>
+          {% if allocated_lessons %}
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Tutor</th>
+                  <th>Date</th>
+                  <th>Time</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for lesson in allocated_lessons %}
+                  <tr>
+                    <td>{{ lesson.title }}</td>
+                    <td>{{ lesson.tutor }}</td>
+                    <td>{{ lesson.lesson_date|date:"Y-m-d" }}</td>
+                    <td>{{ lesson.lesson_date|date:"H:i" }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          {% else %}
+            <p>You have no allocated lessons at the moment.</p>
+          {% endif %}
         </div>
       {% endif %}
     </div>
   </div>
 </div>
 {% endblock %}
+

@@ -70,23 +70,16 @@ class LessonRequest(models.Model):
         LessonSchedule.objects.create(
             student=self.student,
             tutor=tutor,
-            title=self.title,
-            description=self.description,
+            lesson_date=time,
             venue=venue,
-            time=time,
-            frequency='one-time'
         )
 
 class LessonSchedule(models.Model):
-    # Fields
-    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name="lesson_schedules")
-    tutor = models.ForeignKey(User, on_delete=models.CASCADE, related_name="tutor_schedules")
-    title = models.CharField(max_length=255)
-    description = models.TextField()
+    student = models.ForeignKey('User', on_delete=models.CASCADE, related_name='schedules')
+    tutor = models.ForeignKey('User', on_delete=models.CASCADE, related_name='tutoring_schedules')
+    lesson_date = models.DateTimeField()
     venue = models.CharField(max_length=255)
-    time = models.DateTimeField()
-    frequency = models.CharField(max_length=100, choices=[('one-time', 'One Time'), ('weekly', 'Weekly'), ('monthly', 'Monthly')])
-    status = models.CharField(max_length=50, choices=[('pending', 'Pending'), ('confirmed', 'Confirmed')], default='pending')
+    status = models.CharField(max_length=50, default='scheduled')
 
     def __str__(self):
         return f"Lesson: {self.title} with {self.tutor} at {self.time}"

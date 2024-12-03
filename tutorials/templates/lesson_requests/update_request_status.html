@@ -10,17 +10,18 @@
         <option value="unallocated" {% if lesson_request.status == 'unallocated' %}selected{% endif %}>Unallocated</option>
     </select>
 
-    <!-- Additional fields for allocation -->
-    {% if lesson_request.status == 'allocated' or request.POST.status == 'allocated' %}
+    <!-- Allocation Details Section -->
+    {% if lesson_request.status == 'allocated' %}
     <div id="allocation-details" style="margin-top: 20px;">
+        <h4>Allocation Details</h4>
         <label for="tutor">Preferred Tutor:</label>
         <input type="text" name="tutor" id="tutor" class="form-control" value="{{ lesson_request.preferred_tutor.full_name }}" readonly>
 
         <label for="venue">Venue:</label>
-        <input type="text" name="venue" id="venue" class="form-control" placeholder="Enter the venue">
+        <input type="text" name="venue" id="venue" class="form-control" value="{{ lesson_request.venue|default:'Online' }}" readonly>
 
         <label for="time">Lesson Time:</label>
-        <input type="datetime-local" name="time" id="time" class="form-control">
+        <input type="text" name="time" id="time" class="form-control" value="{{ lesson_request.lesson_date|date:'Y-m-d H:i' }}" readonly>
     </div>
     {% endif %}
 
