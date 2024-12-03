@@ -160,11 +160,23 @@ User = get_user_model()
 
 # Check if user is a student
 def is_student(user):
-    return not user.is_staff
+    return not user.is_staff and not user.is_superuser
+
+# Check if user is a tutor
+def is_tutor(user):
+    return user.is_staff and not user.is_superuser
 
 # Check if user is an admin
 def is_admin(user):
-    return user.is_staff
+    return not user.is_staff and user.is_superuser
+
+# Check if user is both admin and tutor
+def is_admin_tutor(user):
+    return user.is_staff and user.is_superuser
+
+# Check if user is both admin and tutor
+def is_admin_or_tutor(user):
+    return user.is_staff or user.is_superuser
 
 # Student: Submit Lesson Request
 @login_required
