@@ -10,6 +10,7 @@ from django.views.generic.edit import FormView, UpdateView
 from django.views.generic.list import ListView
 from django.views.generic.base import TemplateView
 from django.urls import reverse
+from django.db.models import Prefetch
 from tutorials.forms import LogInForm, PasswordForm, UserForm, SignUpForm
 from tutorials.helpers import login_prohibited
 from .models import User, Tutor, Schedule
@@ -164,21 +165,38 @@ class TutorListView(ListView):
     model = Tutor  
     template_name = 'tutor_list.html' 
     context_object_name = 'tutors'
-    
+
     def get_queryset(self):
-        queryset = Tutor.objects.all()
-        subjects = self.request.GET.get('subjects')
-        availability = self.request.GET.get('availability')
+        queryset = Tutor.objects.prefetch_related(
+            Prefetch(
+                'user__schedules',
+                queryset=Schedule.objects.order_by('day_of_week', 'start_time'),
+                to_attr='available_schedules'
+            )
+        )
 
-        if subjects:
-            for key, value in Tutor.IGCSE_SUBJECTS:
-                if value.lower() == subjects.lower():
-                    queryset = queryset.filter(subjects=key)
-                    break
+        # Get search parameters
+        subjects = self.request.GET.get('subjects', 'any')
+        day = self.request.GET.get('day', 'any')
 
-        if availability:
-            queryset = queryset.filter(availability__icontains=availability)
-        return queryset
+        # Filter by subject
+        if subjects != "any":
+            queryset = queryset.filter(subjects=subjects)
+
+        # Filter by day
+        if day != "any":
+            queryset = queryset.filter(user__schedules__day_of_week__iexact=day)
+
+        return queryset.distinct()
+
+    def get_context_data(self, **kwargs):
+        """Provide context for populating dropdowns."""
+        context = super().get_context_data(**kwargs)
+        context['subjects'] = Tutor.TOPICS  # Pass subjects to the template
+        context['days'] = Schedule.DAYS_OF_WEEK  # Pass days to the template
+        return context
+
+
 
 class TutorAvailabilityUpdateView(LoginRequiredMixin, TemplateView):
     template_name = 'update_schedule.html'

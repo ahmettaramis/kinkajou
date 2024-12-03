@@ -7,11 +7,21 @@
     <h1>Available Tutors</h1>
     
     <form method="GET" action="{% url 'tutors' %}">
-        <label for="subjects">Subjects:</label>
-        <input type="text" id="subjects" name="subjects" value="{{ request.GET.subjects }}">
+        <label for="subjects">Subject:</label>
+        <select id="subjects" name="subjects">
+            <option value="any" {% if request.GET.subjects == "any" or not request.GET.subjects %}selected{% endif %}>Any</option>
+            {% for key, value in subjects %}
+                <option value="{{ key }}" {% if request.GET.subjects == key %}selected{% endif %}>{{ value }}</option>
+            {% endfor %}
+        </select>
         
-        <label for="availability">Availability:</label>
-        <input type="text" id="availability" name="availability" value="{{ request.GET.availability }}">
+        <label for="day">Day:</label>
+        <select id="day" name="day">
+            <option value="any" {% if request.GET.day == "any" or not request.GET.day %}selected{% endif %}>Any</option>
+            {% for key, value in days %}
+                <option value="{{ key }}" {% if request.GET.day == key %}selected{% endif %}>{{ value }}</option>
+            {% endfor %}
+        </select>
         
         <button type="submit">Search</button>
     </form>
@@ -19,9 +29,18 @@
     <ul>
         {% for tutor in tutors %}
             <li>
-                {{ tutor.user.first_name }} {{ tutor.user.last_name }} - {{ tutor.get_subjects_display }}
+                <strong>{{ tutor.user.first_name }} {{ tutor.user.last_name }}</strong> - {{ tutor.get_subjects_display }}
                 <br>
-                Availability: {% if tutor.availability %}{{ tutor.availability }}{% else %}Not specified{% endif %}
+                <strong>Availability:</strong>
+                {% if tutor.user.available_schedules %}
+                    <ul>
+                        {% for slot in tutor.user.available_schedules %}
+                            <li>{{ slot.day_of_week }}: {{ slot.start_time }} - {{ slot.end_time }}</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    Not specified
+                {% endif %}
             </li>
         {% empty %}
             <p>No tutors found matching your criteria.</p>

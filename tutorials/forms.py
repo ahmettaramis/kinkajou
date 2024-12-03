@@ -115,8 +115,8 @@ class ScheduleForm(forms.ModelForm):
         model = Schedule
         fields = ['day_of_week', 'start_time', 'end_time']
         widgets = {
-            'start_time': forms.TimeInput(format='%H:%M', attrs={'type': 'time'}),
-            'end_time': forms.TimeInput(format='%H:%M', attrs={'type': 'time'}),
+            'start_time': forms.Select(choices=[(f"{h}:00", f"{h}:00") for h in range(8, 20)]),
+            'end_time': forms.Select(choices=[(f"{h}:00", f"{h}:00") for h in range(9, 21)]),
         }
 
     def clean(self):
