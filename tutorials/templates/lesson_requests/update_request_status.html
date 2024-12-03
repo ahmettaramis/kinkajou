@@ -5,23 +5,21 @@
 <form method="post">
     {% csrf_token %}
     <label for="status">Status:</label>
-    <select name="status" id="status" class="form-control" onchange="this.form.submit()">
+    <select name="status" id="status" class="form-control">
         <option value="allocated" {% if lesson_request.status == 'allocated' %}selected{% endif %}>Allocated</option>
         <option value="unallocated" {% if lesson_request.status == 'unallocated' %}selected{% endif %}>Unallocated</option>
     </select>
 
-    <!-- Allocation Details Section -->
     {% if lesson_request.status == 'allocated' %}
     <div id="allocation-details" style="margin-top: 20px;">
-        <h4>Allocation Details</h4>
         <label for="tutor">Preferred Tutor:</label>
-        <input type="text" name="tutor" id="tutor" class="form-control" value="{{ lesson_request.preferred_tutor.full_name }}" readonly>
+        <input type="text" name="tutor" id="tutor" class="form-control" value="{{ lesson_request.preferred_tutor.full_name }}">
 
         <label for="venue">Venue:</label>
-        <input type="text" name="venue" id="venue" class="form-control" value="{{ lesson_request.venue|default:'Online' }}" readonly>
+        <input type="text" name="venue" id="venue" class="form-control" value="{{ lesson_request.venue|default:'Online' }}">
 
         <label for="time">Lesson Time:</label>
-        <input type="text" name="time" id="time" class="form-control" value="{{ lesson_request.lesson_date|date:'Y-m-d H:i' }}" readonly>
+        <input type="datetime-local" name="time" id="time" class="form-control" value="{{ lesson_request.lesson_date|date:'Y-m-d\TH:i' }}">
     </div>
     {% endif %}
 
