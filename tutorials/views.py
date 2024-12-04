@@ -204,6 +204,11 @@ class TutorAvailabilityUpdateView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         tutor = get_object_or_404(Tutor, user=self.request.user)
+
+        #implement a 403?
+        """ if self.request.user.role != 'tutor':
+            raise PermissionDenied("You do not have permission to access this page.") """
+        
         context['availability'] = Schedule.objects.filter(user=tutor.user)
         context['form'] = ScheduleForm()
         return context

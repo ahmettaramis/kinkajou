@@ -1,50 +1,51 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>List of Tutors</title>
-</head>
-<body>
-    <h1>Available Tutors</h1>
-    
-    <form method="GET" action="{% url 'tutors' %}">
-        <label for="subjects">Subject:</label>
-        <select id="subjects" name="subjects">
-            <option value="any" {% if request.GET.subjects == "any" or not request.GET.subjects %}selected{% endif %}>Any</option>
-            {% for key, value in subjects %}
-                <option value="{{ key }}" {% if request.GET.subjects == key %}selected{% endif %}>{{ value }}</option>
-            {% endfor %}
-        </select>
-        
-        <label for="day">Day:</label>
-        <select id="day" name="day">
-            <option value="any" {% if request.GET.day == "any" or not request.GET.day %}selected{% endif %}>Any</option>
-            {% for key, value in days %}
-                <option value="{{ key }}" {% if request.GET.day == key %}selected{% endif %}>{{ value }}</option>
-            {% endfor %}
-        </select>
-        
-        <button type="submit">Search</button>
-    </form>
+{% extends 'base_content.html' %}
+{% block content %}
+<div class = "container">
+    <div class = "row">
+        <div class = "col-12">
+            <h1>Available Tutors</h1>
+            
+            <form method="GET" action="{% url 'tutors' %}">
+                <label for="subjects">Subject:</label>
+                <select id="subjects" name="subjects">
+                    <option value="any" {% if request.GET.subjects == "any" or not request.GET.subjects %}selected{% endif %}>Any</option>
+                    {% for key, value in subjects %}
+                        <option value="{{ key }}" {% if request.GET.subjects == key %}selected{% endif %}>{{ value }}</option>
+                    {% endfor %}
+                </select>
+                
+                <label for="day">Day:</label>
+                <select id="day" name="day">
+                    <option value="any" {% if request.GET.day == "any" or not request.GET.day %}selected{% endif %}>Any</option>
+                    {% for key, value in days %}
+                        <option value="{{ key }}" {% if request.GET.day == key %}selected{% endif %}>{{ value }}</option>
+                    {% endfor %}
+                </select>
+                
+                <button type="submit">Search</button>
+            </form>
 
-    <ul>
-        {% for tutor in tutors %}
-            <li>
-                <strong>{{ tutor.user.first_name }} {{ tutor.user.last_name }}</strong> - {{ tutor.get_subjects_display }}
-                <br>
-                <strong>Availability:</strong>
-                {% if tutor.user.available_schedules %}
-                    <ul>
-                        {% for slot in tutor.user.available_schedules %}
-                            <li>{{ slot.day_of_week }}: {{ slot.start_time }} - {{ slot.end_time }}</li>
-                        {% endfor %}
-                    </ul>
-                {% else %}
-                    Not specified
-                {% endif %}
-            </li>
-        {% empty %}
-            <p>No tutors found matching your criteria.</p>
-        {% endfor %}
-    </ul>
-</body>
-</html>
+            <ul>
+                {% for tutor in tutors %}
+                    <li>
+                        <strong>{{ tutor.user.first_name }} {{ tutor.user.last_name }}</strong> - {{ tutor.get_subjects_display }}
+                        <br>
+                        <strong>Availability:</strong>
+                        {% if tutor.user.available_schedules %}
+                            <ul>
+                                {% for slot in tutor.user.available_schedules %}
+                                    <li>{{ slot.day_of_week }}: {{ slot.start_time }} - {{ slot.end_time }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            Not specified
+                        {% endif %}
+                    </li>
+                {% empty %}
+                    <p>No tutors found matching your criteria.</p>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

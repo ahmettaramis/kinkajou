@@ -115,8 +115,9 @@ class ScheduleForm(forms.ModelForm):
         model = Schedule
         fields = ['day_of_week', 'start_time', 'end_time']
         widgets = {
-            'start_time': forms.Select(choices=[(f"{h}:00", f"{h}:00") for h in range(8, 20)]),
-            'end_time': forms.Select(choices=[(f"{h}:00", f"{h}:00") for h in range(9, 21)]),
+            'start_time': forms.Select(choices=[(f"{h}:00", f"{h}:00") for h in range(8, 20)], attrs={'class': 'form-control'}),
+            'end_time': forms.Select(choices=[(f"{h}:00", f"{h}:00") for h in range(9, 21)], attrs={'class': 'form-control'}),
+            'day_of_week': forms.Select(attrs={'class': 'form-control'}),
         }
 
     def clean(self):
@@ -125,6 +126,6 @@ class ScheduleForm(forms.ModelForm):
         end_time = cleaned_data.get("end_time")
 
         if start_time and end_time and start_time >= end_time:
-            raise forms.ValidationError("Start time must be before end time.")
+            self.add_error('start_time', 'Start Time cannot be before End Time')
 
         return cleaned_data
