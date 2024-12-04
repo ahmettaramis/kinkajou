@@ -138,7 +138,7 @@ class LessonRequestForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Filter tutors for the dropdown
-        self.fields['preferred_tutor'].queryset = User.objects.filter(is_staff=True)
+        self.fields['preferred_tutor'].queryset = User.objects.filter(role = "tutor")
 
         self.fields['title'].required = True
         self.fields['description'].required = True

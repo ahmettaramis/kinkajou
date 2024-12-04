@@ -166,15 +166,15 @@ User = get_user_model()
 
 # Check if user is a student
 def is_student(user):
-    return not user.is_staff and not user.is_superuser
+    return user.role == "student"
 
 # Check if user is a tutor
 def is_tutor(user):
-    return user.is_staff
+    return user.role == "tutor"
 
 # Check if user is an admin
 def is_admin(user):
-    return user.is_superuser
+    return user.role == "admin"
 
 # Student: Submit Lesson Request
 @login_required
@@ -214,7 +214,7 @@ def admin_view_requests(request):
 @user_passes_test(is_admin)
 def update_request_status(request, pk):
     lesson_request = get_object_or_404(LessonRequest, pk=pk)
-    tutors = User.objects.filter(is_staff=True)
+    tutors = User.objects.filter(role = "tutor")
 
     if request.method == 'POST':
         new_status = request.POST.get('status')
