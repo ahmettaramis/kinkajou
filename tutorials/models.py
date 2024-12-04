@@ -22,6 +22,18 @@ class User(AbstractUser):
     last_name = models.CharField(max_length=50, blank=False)
     email = models.EmailField(unique=True, blank=False)
 
+    ROLE_CHOICES = [
+        ('admin', 'Admin'),
+        ('tutor', 'Tutor'),
+        ('student', 'Student'),
+    ]
+
+    role = models.CharField(
+        max_length=10,
+        choices=ROLE_CHOICES,
+        default='student',
+        verbose_name='Role'
+    )
 
     class Meta:
         """Model options."""

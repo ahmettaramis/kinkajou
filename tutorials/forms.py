@@ -93,11 +93,18 @@ class PasswordForm(NewPasswordMixin):
 class SignUpForm(NewPasswordMixin, forms.ModelForm):
     """Form enabling unregistered users to sign up."""
 
+    ROLE_CHOICES = [
+        ('student', 'Student'),
+        ('tutor', 'Tutor'),
+    ]
+
+    role = forms.ChoiceField(choices=ROLE_CHOICES)
+
     class Meta:
         """Form options."""
 
         model = User
-        fields = ['first_name', 'last_name', 'username', 'email']
+        fields = ['first_name', 'last_name', 'username', 'email', 'role']
 
     def save(self):
         """Create a new user."""
@@ -108,6 +115,7 @@ class SignUpForm(NewPasswordMixin, forms.ModelForm):
             first_name=self.cleaned_data.get('first_name'),
             last_name=self.cleaned_data.get('last_name'),
             email=self.cleaned_data.get('email'),
+            role=self.cleaned_data.get('role'),
             password=self.cleaned_data.get('new_password'),
         )
         return user
