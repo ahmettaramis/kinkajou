@@ -214,11 +214,12 @@ def update_request_status(request, pk):
     ).first()
 
     if request.method == 'POST':
+        # Get updated values from the form
         new_status = request.POST.get('status')
-        venue = request.POST.get('venue', 'Online')  # Default to 'Online' if not provided
+        venue = request.POST.get('venue', 'Online')
         time_str = request.POST.get('time')
 
-        # Convert time from string to datetime if provided
+        # Convert the date and time string to a datetime object if provided
         lesson_date = None
         if time_str:
             try:
@@ -228,43 +229,43 @@ def update_request_status(request, pk):
                 return render(request, 'lesson_requests/update_request_status.html', {'lesson_request': lesson_request})
 
         if new_status == 'allocated':
-            # If already allocated, update the existing LessonSchedule or create a new one
+            # If no tutor is assigned, show an error
+            tutor = lesson_request.preferred_tutor
+            if not tutor:
+                messages.error(request, "Please assign a preferred tutor before allocating.")
+                return render(request, 'lesson_requests/update_request_status.html', {'lesson_request': lesson_request})
+
+            # Update or create the LessonSchedule
             if lesson_schedule:
                 # Update existing schedule
                 lesson_schedule.lesson_date = lesson_date if lesson_date else lesson_schedule.lesson_date
                 lesson_schedule.venue = venue
                 lesson_schedule.save()
 
-                # Update lesson request as well
+                # Update lesson request with new date
                 lesson_request.lesson_date = lesson_date if lesson_date else lesson_request.lesson_date
+                lesson_request.status = new_status
+                lesson_request.save()
+            else:
+                # Create a new schedule if not allocated before
+                LessonSchedule.objects.create(
+                    student=lesson_request.student,
+                    tutor=tutor,
+                    lesson_date=lesson_date,
+                    venue=venue,
+                )
+                lesson_request.status = new_status
+                lesson_request.lesson_date = lesson_date
                 lesson_request.save()
 
-                messages.success(request, "Lesson schedule has been successfully updated.")
-            else:
-                # Create a new schedule if it wasn't allocated before
-                tutor = lesson_request.preferred_tutor
-                if not tutor:
-                    messages.error(request, "Please assign a preferred tutor before allocating.")
-                    return render(request, 'lesson_requests/update_request_status.html', {'lesson_request': lesson_request})
-
-                try:
-                    LessonSchedule.objects.create(
-                        student=lesson_request.student,
-                        tutor=tutor,
-                        venue=venue,
-                        lesson_date=lesson_date
-                    )
-                    lesson_request.status = new_status
-                    lesson_request.lesson_date = lesson_date
-                    lesson_request.save()
-
-                    messages.success(request, "Lesson request has been successfully allocated and scheduled.")
-                except Exception as e:
-                    messages.error(request, f"An error occurred while creating the schedule: {str(e)}")
-
+            messages.success(request, "Lesson request has been successfully allocated and scheduled.")
         else:
-            # Update only the status of LessonRequest (unallocated or other)
+            # Update the lesson request to 'unallocated' and remove its schedule
+            if lesson_schedule:
+                lesson_schedule.delete()
+
             lesson_request.status = new_status
+            lesson_request.lesson_date = None
             lesson_request.save()
             messages.success(request, "Lesson request status updated successfully.")
 
@@ -272,5 +273,5 @@ def update_request_status(request, pk):
 
     return render(request, 'lesson_requests/update_request_status.html', {
         'lesson_request': lesson_request,
-        'lesson_schedule': lesson_schedule
+        'lesson_schedule': lesson_schedule,
     })
