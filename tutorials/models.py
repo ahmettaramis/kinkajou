@@ -57,6 +57,59 @@ class User(AbstractUser):
         
         return self.gravatar(size=60)
 
+class Tutor(models.Model):
+    """Model for tutors, extending User"""
+
+    TOPICS = [
+    ('algorithms', 'Algorithms'),
+    ('databases', 'Databases'),
+    ('web', 'Web'),
+    ('networks', 'Networks'),
+    ('security', 'Security'),
+    ('ai', 'AI'),
+    ('logic', 'Logic'),
+    ('python', 'Python'),
+    ('java', 'Java'),
+    ]
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='tutor_profile')
+
+    subjects = models.CharField(max_length=50, choices=TOPICS, blank=True, null=True)
+    availability = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f'{self.user.username} - {self.expertise}'
+
+class Student(models.Model):
+    """Model for students, extending User"""
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='student_profile')
+    tutor = models.ForeignKey('Tutor', related_name='students',
+                              on_delete=models.SET_NULL, null = True, blank = True)
+
+    def __str__(self):
+        return f"{self.user.username}"
+
+class Schedule(models.Model):
+    DAYS_OF_WEEK = [
+        ('Monday', 'Monday'),
+        ('Tuesday', 'Tuesday'),
+        ('Wednesday', 'Wednesday'),
+        ('Thursday', 'Thursday'),
+        ('Friday', 'Friday'),
+        ('Saturday', 'Saturday'),
+        ('Sunday', 'Sunday'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='schedules')  # For both students and tutors
+    day_of_week = models.CharField(max_length=10, choices=DAYS_OF_WEEK)
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+
+    def __str__(self):
+        return f"{self.user.username}: {self.day_of_week} {self.start_time}-{self.end_time}"
+
+
 User = get_user_model()
 
 class LessonRequest(models.Model):
