@@ -189,7 +189,7 @@ def student_view_requests(request):
 
 # Admin: View All Requests
 @login_required
-@is_student
+@is_admin
 def admin_view_requests(request):
     status_filter = request.GET.get('status')  # Get status filter from query params
     if status_filter:
@@ -200,7 +200,7 @@ def admin_view_requests(request):
 
 # Admin: Update Request Status
 @login_required
-@is_student
+@is_admin
 def update_request_status(request, pk):
     lesson_request = get_object_or_404(LessonRequest, pk=pk)
     tutors = User.objects.filter(role = "tutor")
