@@ -18,6 +18,7 @@ from .forms import ScheduleForm
 
 from .models import LessonRequest, AllocatedLesson
 from .forms import LessonRequestForm
+from .helpers import *
 from django.core.exceptions import PermissionDenied
 
 
@@ -164,21 +165,9 @@ class SignUpView(LoginProhibitedMixin, FormView):
 
 User = get_user_model()
 
-# Check if user is a student
-def is_student(user):
-    return not user.is_staff and not user.is_superuser
-
-# Check if user is a tutor
-def is_tutor(user):
-    return user.is_staff
-
-# Check if user is an admin
-def is_admin(user):
-    return user.is_superuser
-
 # Student: Submit Lesson Request
 @login_required
-@user_passes_test(is_student)
+@is_student
 def create_lesson_request(request):
     if request.method == 'POST':
         form = LessonRequestForm(request.POST)
@@ -193,14 +182,14 @@ def create_lesson_request(request):
 
 # Student: View Own Requests
 @login_required
-@user_passes_test(is_student)
+@is_student
 def student_view_requests(request):
     requests = LessonRequest.objects.filter(student=request.user)
     return render(request, 'lesson_requests/student_view_requests.html', {'requests': requests})
 
 # Admin: View All Requests
 @login_required
-@user_passes_test(is_admin)
+@is_student
 def admin_view_requests(request):
     status_filter = request.GET.get('status')  # Get status filter from query params
     if status_filter:
@@ -211,7 +200,7 @@ def admin_view_requests(request):
 
 # Admin: Update Request Status
 @login_required
-@user_passes_test(is_admin)
+@is_student
 def update_request_status(request, pk):
     lesson_request = get_object_or_404(LessonRequest, pk=pk)
     tutors = User.objects.filter(is_staff=True)
