@@ -238,6 +238,8 @@ Temporary Items
 # Translations
 
 # Django stuff:
+.code_tutors/tutorials/management/seed.py
+
 
 # Flask stuff:
 

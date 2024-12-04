@@ -19,9 +19,9 @@ seed_groups = ['Students', 'Tutors']
 class Command(BaseCommand):
     """Build automation command to seed the database."""
 
-    USER_COUNT = 50
-    LESSON_COUNT = 10
-    INVOICE_COUNT = 5
+    USER_COUNT = 100
+    LESSON_COUNT = 50
+    INVOICE_COUNT = 21
     DEFAULT_PASSWORD = 'Password123'
     user_groups = ['Admins', 'Students', 'Tutors']
     help = 'Seeds the database with sample data'

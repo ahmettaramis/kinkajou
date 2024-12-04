@@ -15,7 +15,6 @@ from tutorials.forms import LogInForm, PasswordForm, UserForm, SignUpForm, Invoi
 from tutorials.helpers import login_prohibited, admin_required
 from tutorials.models import Invoice, Lesson
 
-
 @login_required
 def dashboard(request):
     """Display the current user's dashboard."""

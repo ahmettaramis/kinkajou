@@ -1,6 +1,8 @@
 from django.core.validators import RegexValidator
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.core.validators import MinValueValidator
+from decimal import Decimal
 from libgravatar import Gravatar
 
 class User(AbstractUser):
@@ -53,6 +55,6 @@ class Lesson(models.Model):
 class Invoice(models.Model):
 
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name='invoice', null=True, blank=True)
-    amount = models.DecimalField(max_digits=6, decimal_places=2, default=0)
+    amount = models.DecimalField(max_digits=6, decimal_places=2, default=0, validators=[MinValueValidator(Decimal('0.01'))])
     is_paid = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
