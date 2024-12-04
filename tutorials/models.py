@@ -1,7 +1,10 @@
 from django.core.validators import RegexValidator
+from django.core.exceptions import ValidationError
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.utils.timezone import now
+
 from libgravatar import Gravatar
 
 class User(AbstractUser):
@@ -48,7 +51,7 @@ class LessonRequest(models.Model):
     # Fields
     student = models.ForeignKey(User, on_delete=models.CASCADE, related_name="lesson_requests")
     title = models.CharField(max_length=255)
-    description = models.TextField()
+    description = models.TextField(max_length=1000)
     status = models.CharField(
         max_length=50,
         choices=[('unallocated', 'Unallocated'), ('allocated', 'Allocated')],
@@ -57,6 +60,15 @@ class LessonRequest(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     lesson_date = models.DateTimeField(null=True, blank=True)
     preferred_tutor = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="preferred_requests")
+    no_of_weeks = models.PositiveIntegerField()
+
+    def clean(self):
+        # Validate date is not in the past
+        if self.lesson_date and self.lesson_date < now():
+            raise ValidationError("Lesson date cannot be in the past.")
+        # Validate number of weeks
+        if self.no_of_weeks < 1 or self.no_of_weeks > 52:
+            raise ValidationError("Number of weeks must be between 1 and 52.")
 
     def __str__(self):
         return f"{self.title} ({self.status})"

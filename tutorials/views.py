@@ -164,19 +164,11 @@ def is_student(user):
 
 # Check if user is a tutor
 def is_tutor(user):
-    return user.is_staff and not user.is_superuser
+    return user.is_staff
 
 # Check if user is an admin
 def is_admin(user):
-    return not user.is_staff and user.is_superuser
-
-# Check if user is both admin and tutor
-def is_admin_tutor(user):
-    return user.is_staff and user.is_superuser
-
-# Check if user is both admin and tutor
-def is_admin_or_tutor(user):
-    return user.is_staff or user.is_superuser
+    return user.is_superuser
 
 # Student: Submit Lesson Request
 @login_required
@@ -186,7 +178,7 @@ def create_lesson_request(request):
         form = LessonRequestForm(request.POST)
         if form.is_valid():
             lesson_request = form.save(commit=False)
-            lesson_request.student = request.user  #Link to the logged-in student
+            lesson_request.student = request.user
             lesson_request.save()
             return redirect('student_view_requests')
     else:

@@ -4,6 +4,8 @@ from django.contrib.auth import authenticate
 from django.contrib.auth import get_user_model
 from django.core.validators import RegexValidator
 from .models import User, LessonRequest
+from django.utils.timezone import now
+from django.core.exceptions import ValidationError
 
 class LogInForm(forms.Form):
     """Form enabling registered users to log in."""
@@ -115,15 +117,35 @@ User = get_user_model()
 class LessonRequestForm(forms.ModelForm):
     class Meta:
         model = LessonRequest
-        fields = ['title', 'description', 'lesson_date', 'preferred_tutor']
+        fields = ['title', 'description', 'lesson_date', 'preferred_tutor', 'no_of_weeks']
         widgets = {
             'lesson_date': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
-            'title': forms.TextInput(attrs={'class': 'form-control'}),
-            'description': forms.Textarea(attrs={'class': 'form-control'}),
-            'preferred_tutor': forms.Select(attrs={'class': 'form-control'}),
+            'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter a title of your lesson'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Provide a description for your lesson request', 'maxlength': '1000'}),
+            'preferred_tutor': forms.Select(attrs={'class': 'form-control', 'placeholder': 'Select a preferred tutor (optional)'}),
+            'no_of_weeks': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Enter how many weeks you want this lesson (1-52)', 'min': 1, 'max': 52}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Filter tutors for the dropdown
         self.fields['preferred_tutor'].queryset = User.objects.filter(is_staff=True)
+
+        self.fields['title'].required = True
+        self.fields['description'].required = True
+        self.fields['lesson_date'].required = True
+        self.fields['preferred_tutor'].required = False
+        self.fields['no_of_weeks'].required = True
+    
+    def clean_lesson_date(self):
+        # Validate lesson_date is not in the past
+        lesson_date = self.cleaned_data.get('lesson_date')
+        if lesson_date and lesson_date < now():
+            raise ValidationError("Lesson date cannot be in the past.")
+        return lesson_date
+
+    def clean_description(self):
+        description = self.cleaned_data.get('description')
+        if len(description) > 1000:
+            raise forms.ValidationError("Description cannot exceed 1000 characters.")
+        return description
