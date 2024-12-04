@@ -6,6 +6,7 @@ from django.core.validators import RegexValidator
 from .models import User, LessonRequest
 from django.utils.timezone import now
 from django.core.exceptions import ValidationError
+from .models import User, Schedule
 
 class LogInForm(forms.Form):
     """Form enabling registered users to log in."""
@@ -157,3 +158,25 @@ class LessonRequestForm(forms.ModelForm):
         if len(description) > 1000:
             raise forms.ValidationError("Description cannot exceed 1000 characters.")
         return description
+
+    
+
+class ScheduleForm(forms.ModelForm):
+    class Meta:
+        model = Schedule
+        fields = ['day_of_week', 'start_time', 'end_time']
+        widgets = {
+            'start_time': forms.Select(choices=[(f"{h}:00", f"{h}:00") for h in range(8, 20)], attrs={'class': 'form-control'}),
+            'end_time': forms.Select(choices=[(f"{h}:00", f"{h}:00") for h in range(9, 21)], attrs={'class': 'form-control'}),
+            'day_of_week': forms.Select(attrs={'class': 'form-control'}),
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        start_time = cleaned_data.get("start_time")
+        end_time = cleaned_data.get("end_time")
+
+        if start_time and end_time and start_time >= end_time:
+            self.add_error('start_time', 'Start Time cannot be before End Time')
+
+        return cleaned_data

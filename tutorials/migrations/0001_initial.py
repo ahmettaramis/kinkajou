@@ -57,6 +57,33 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
+            name='Schedule',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('day_of_week', models.CharField(choices=[('Monday', 'Monday'), ('Tuesday', 'Tuesday'), ('Wednesday', 'Wednesday'), ('Thursday', 'Thursday'), ('Friday', 'Friday'), ('Saturday', 'Saturday'), ('Sunday', 'Sunday')], max_length=10)),
+                ('start_time', models.TimeField()),
+                ('end_time', models.TimeField()),
+                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='schedules', to=settings.AUTH_USER_MODEL)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='Tutor',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('subjects', models.CharField(blank=True, choices=[('algorithms', 'Algorithms'), ('databases', 'Databases'), ('web', 'Web'), ('networks', 'Networks'), ('security', 'Security'), ('ai', 'AI'), ('logic', 'Logic'), ('python', 'Python'), ('java', 'Java')], max_length=50, null=True)),
+                ('availability', models.TextField(blank=True, null=True)),
+                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='tutor_profile', to=settings.AUTH_USER_MODEL)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='Student',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='student_profile', to=settings.AUTH_USER_MODEL)),
+                ('tutor', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='students', to='tutorials.tutor')),
+            ],
+        ),
+        migrations.CreateModel(
             name='AllocatedLesson',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),

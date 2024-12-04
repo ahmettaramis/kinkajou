@@ -4,12 +4,18 @@ from django.contrib.auth import login, logout, get_user_model
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ImproperlyConfigured
-from django.shortcuts import redirect, render, get_object_or_404
+from django.shortcuts import redirect, render, get_object_or_404, get_object_or_404
 from django.views import View
 from django.views.generic.edit import FormView, UpdateView
+from django.views.generic.list import ListView
+from django.views.generic.base import TemplateView
 from django.urls import reverse
+from django.db.models import Prefetch
 from tutorials.forms import LogInForm, PasswordForm, UserForm, SignUpForm
 from tutorials.helpers import login_prohibited
+from .models import User, Tutor, Schedule
+from .forms import ScheduleForm
+
 from .models import LessonRequest, AllocatedLesson
 from .forms import LessonRequestForm
 from django.core.exceptions import PermissionDenied
@@ -235,3 +241,77 @@ def update_request_status(request, pk):
         'lesson_request': lesson_request,
         'tutors': tutors
     })
+
+    
+
+class TutorListView(ListView):
+    """View to display all tutors."""
+    
+    model = Tutor  
+    template_name = 'tutor_list.html' 
+    context_object_name = 'tutors'
+
+    def get_queryset(self):
+        queryset = Tutor.objects.prefetch_related(
+            Prefetch(
+                'user__schedules',
+                queryset=Schedule.objects.order_by('day_of_week', 'start_time'),
+                to_attr='available_schedules'
+            )
+        )
+
+        # Get search parameters
+        subjects = self.request.GET.get('subjects', 'any')
+        day = self.request.GET.get('day', 'any')
+
+        # Filter by subject
+        if subjects != "any":
+            queryset = queryset.filter(subjects=subjects)
+
+        # Filter by day
+        if day != "any":
+            queryset = queryset.filter(user__schedules__day_of_week__iexact=day)
+
+        return queryset.distinct()
+
+    def get_context_data(self, **kwargs):
+        """Provide context for populating dropdowns."""
+        context = super().get_context_data(**kwargs)
+        context['subjects'] = Tutor.TOPICS  # Pass subjects to the template
+        context['days'] = Schedule.DAYS_OF_WEEK  # Pass days to the template
+        return context
+
+
+
+class TutorAvailabilityUpdateView(LoginRequiredMixin, TemplateView):
+    template_name = 'update_schedule.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        tutor = get_object_or_404(Tutor, user=self.request.user)
+
+        #implement a 403?
+        """ if self.request.user.role != 'tutor':
+            raise PermissionDenied("You do not have permission to access this page.") """
+        
+        context['availability'] = Schedule.objects.filter(user=tutor.user)
+        context['form'] = ScheduleForm()
+        return context
+
+    def post(self, request, *args, **kwargs):
+        tutor = get_object_or_404(Tutor, user=request.user)
+
+        if 'delete_schedule' in request.POST:
+            schedule_id = request.POST.get('delete_schedule')
+            schedule = get_object_or_404(Schedule, id=schedule_id, user=tutor.user)
+            schedule.delete()
+            return redirect('update_schedule')
+
+        form = ScheduleForm(request.POST)
+        if form.is_valid():
+            schedule = form.save(commit=False)
+            schedule.user = tutor.user
+            schedule.save()
+            return redirect('update_schedule')
+
+        return self.render_to_response(self.get_context_data(form=form))
