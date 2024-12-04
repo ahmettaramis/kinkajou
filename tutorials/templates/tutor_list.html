@@ -1,50 +1,65 @@
 {% extends 'base_content.html' %}
 {% block content %}
-<div class = "container">
-    <div class = "row">
-        <div class = "col-12">
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+
             <h1>Available Tutors</h1>
-            
+
             <form method="GET" action="{% url 'tutors' %}">
                 <label for="subjects">Subject:</label>
-                <select id="subjects" name="subjects">
+                <select id="subjects" name="subjects" class="form-select">
                     <option value="any" {% if request.GET.subjects == "any" or not request.GET.subjects %}selected{% endif %}>Any</option>
                     {% for key, value in subjects %}
                         <option value="{{ key }}" {% if request.GET.subjects == key %}selected{% endif %}>{{ value }}</option>
                     {% endfor %}
                 </select>
-                
+
                 <label for="day">Day:</label>
-                <select id="day" name="day">
+                <select id="day" name="day" class="form-select">
                     <option value="any" {% if request.GET.day == "any" or not request.GET.day %}selected{% endif %}>Any</option>
                     {% for key, value in days %}
                         <option value="{{ key }}" {% if request.GET.day == key %}selected{% endif %}>{{ value }}</option>
                     {% endfor %}
                 </select>
-                
-                <button type="submit">Search</button>
+
+                <button type="submit" class="btn btn-primary mt-3">Search</button>
             </form>
 
-            <ul>
-                {% for tutor in tutors %}
-                    <li>
-                        <strong>{{ tutor.user.first_name }} {{ tutor.user.last_name }}</strong> - {{ tutor.get_subjects_display }}
-                        <br>
-                        <strong>Availability:</strong>
-                        {% if tutor.user.available_schedules %}
-                            <ul>
-                                {% for slot in tutor.user.available_schedules %}
+            <h2 class="mt-5">Tutors</h2>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th scope="col">Tutor Name</th>
+                        <th scope="col">Subject</th>
+                        <th scope="col">Availability</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tutor in tutors %}
+                    <tr>
+                        <td>{{ tutor.user.first_name }} {{ tutor.user.last_name }}</td>
+                        <td>{{ tutor.get_subjects_display }}</td>
+                        <td>
+                            {% if tutor.user.available_schedules %}
+                                <ul class="list-unstyled">
+                                    {% for slot in tutor.user.available_schedules %}
                                     <li>{{ slot.day_of_week }}: {{ slot.start_time }} - {{ slot.end_time }}</li>
-                                {% endfor %}
-                            </ul>
-                        {% else %}
-                            Not specified
-                        {% endif %}
-                    </li>
-                {% empty %}
-                    <p>No tutors found matching your criteria.</p>
-                {% endfor %}
-            </ul>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                Not specified
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="text-center">No tutors found matching your criteria.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
         </div>
     </div>
 </div>
