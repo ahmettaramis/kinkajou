@@ -1,10 +1,10 @@
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import login, logout
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth import login, logout, get_user_model
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ImproperlyConfigured
-from django.shortcuts import redirect, render, get_object_or_404
+from django.shortcuts import redirect, render, get_object_or_404, get_object_or_404
 from django.views import View
 from django.views.generic.edit import FormView, UpdateView
 from django.views.generic.list import ListView
@@ -16,6 +16,9 @@ from tutorials.helpers import login_prohibited
 from .models import User, Tutor, Schedule
 from .forms import ScheduleForm
 
+from .models import LessonRequest, AllocatedLesson
+from .forms import LessonRequestForm
+from django.core.exceptions import PermissionDenied
 
 
 @login_required
@@ -23,7 +26,8 @@ def dashboard(request):
     """Display the current user's dashboard."""
 
     current_user = request.user
-    return render(request, 'dashboard.html', {'user': current_user})
+    allocated_lessons = AllocatedLesson.objects.filter(lesson_request__student=current_user)
+    return render(request, 'dashboard.html', {'user': current_user, 'allocated_lessons': allocated_lessons})
 
 
 @login_prohibited
@@ -157,6 +161,87 @@ class SignUpView(LoginProhibitedMixin, FormView):
 
     def get_success_url(self):
         return reverse(settings.REDIRECT_URL_WHEN_LOGGED_IN)
+
+User = get_user_model()
+
+# Check if user is a student
+def is_student(user):
+    return not user.is_staff and not user.is_superuser
+
+# Check if user is a tutor
+def is_tutor(user):
+    return user.is_staff
+
+# Check if user is an admin
+def is_admin(user):
+    return user.is_superuser
+
+# Student: Submit Lesson Request
+@login_required
+@user_passes_test(is_student)
+def create_lesson_request(request):
+    if request.method == 'POST':
+        form = LessonRequestForm(request.POST)
+        if form.is_valid():
+            lesson_request = form.save(commit=False)
+            lesson_request.student = request.user
+            lesson_request.save()
+            return redirect('student_view_requests')
+    else:
+        form = LessonRequestForm()
+    return render(request, 'lesson_requests/create_request.html', {'form': form})
+
+# Student: View Own Requests
+@login_required
+@user_passes_test(is_student)
+def student_view_requests(request):
+    requests = LessonRequest.objects.filter(student=request.user)
+    return render(request, 'lesson_requests/student_view_requests.html', {'requests': requests})
+
+# Admin: View All Requests
+@login_required
+@user_passes_test(is_admin)
+def admin_view_requests(request):
+    status_filter = request.GET.get('status')  # Get status filter from query params
+    if status_filter:
+        requests = LessonRequest.objects.filter(status=status_filter)
+    else:
+        requests = LessonRequest.objects.all()
+    return render(request, 'lesson_requests/admin_view_requests.html', {'requests': requests})
+
+# Admin: Update Request Status
+@login_required
+@user_passes_test(is_admin)
+def update_request_status(request, pk):
+    lesson_request = get_object_or_404(LessonRequest, pk=pk)
+    tutors = User.objects.filter(is_staff=True)
+
+    if request.method == 'POST':
+        new_status = request.POST.get('status')
+        selected_tutor_id = request.POST.get('preferred_tutor')
+
+        # Validate that a tutor is selected if allocating
+        if new_status == 'allocated' and not selected_tutor_id:
+            messages.error(request, "You must assign a tutor before allocating the lesson.")
+        else:
+            # Assign the tutor if provided
+            if selected_tutor_id:
+                tutor = User.objects.get(id=selected_tutor_id)
+                lesson_request.preferred_tutor = tutor
+            
+            # Update the status
+            lesson_request.status = new_status
+            lesson_request.save()
+
+            # Redirect with a success message
+            messages.success(request, f"Lesson request status updated to '{new_status}'.")
+            return redirect('admin_view_requests')
+
+    return render(request, 'lesson_requests/update_request_status.html', {
+        'lesson_request': lesson_request,
+        'tutors': tutors
+    })
+
     
 
 class TutorListView(ListView):

@@ -1,0 +1,33 @@
+{% extends "base_content.html" %}
+
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <h2>Your Lesson Requests</h2>
+                <table class="table">
+                    <tr>
+                        <th>Title</th>
+                        <th>Description</th>
+                        <th>Status</th>
+                        <th>Lesson Date</th>
+                        <th>Preferred tutor</th>
+                        <th>No. of weeks:</th>
+                    </tr>
+                    {% for request in requests %}
+                    <tr>
+                        <td>{{ request.title }}</td>
+                        <td style="word-wrap: break-word; max-width: 300px;">
+                            {{ request.description }}
+                        </td>
+                        <td>{{ request.status }}</td>
+                        <td>{{ request.lesson_date }}</td>
+                        <td>{{ request.preferred_tutor }}</td>
+                        <td>{{ request.no_of_weeks }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
