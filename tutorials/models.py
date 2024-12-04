@@ -69,6 +69,9 @@ class LessonRequest(models.Model):
         # Validate number of weeks
         if self.no_of_weeks < 1 or self.no_of_weeks > 52:
             raise ValidationError("Number of weeks must be between 1 and 52.")
+        # Ensure a tutor is assigned when allocating
+        if self.status == 'allocated' and not self.preferred_tutor:
+            raise ValidationError("A tutor must be assigned for allocated lessons.")
 
     def __str__(self):
         return f"{self.title} ({self.status})"

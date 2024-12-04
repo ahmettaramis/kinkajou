@@ -208,12 +208,30 @@ def admin_view_requests(request):
 @user_passes_test(is_admin)
 def update_request_status(request, pk):
     lesson_request = get_object_or_404(LessonRequest, pk=pk)
+    tutors = User.objects.filter(is_staff=True)
+
     if request.method == 'POST':
         new_status = request.POST.get('status')
-        lesson_request.status = new_status
-        lesson_request.lesson_date = request.POST.get('lesson_date') or lesson_request.lesson_date
-        lesson_request.preferred_tutor_id = request.POST.get('preferred_tutor') or lesson_request.preferred_tutor_id
-        lesson_request.no_of_weeks = request.POST.get('no_of_weeks') or lesson_request.no_of_weeks
-        lesson_request.save()
-        return redirect('admin_view_requests')
-    return render(request, 'lesson_requests/update_request_status.html', {'lesson_request': lesson_request})
+        selected_tutor_id = request.POST.get('preferred_tutor')
+
+        # Validate that a tutor is selected if allocating
+        if new_status == 'allocated' and not selected_tutor_id:
+            messages.error(request, "You must assign a tutor before allocating the lesson.")
+        else:
+            # Assign the tutor if provided
+            if selected_tutor_id:
+                tutor = User.objects.get(id=selected_tutor_id)
+                lesson_request.preferred_tutor = tutor
+            
+            # Update the status
+            lesson_request.status = new_status
+            lesson_request.save()
+
+            # Redirect with a success message
+            messages.success(request, f"Lesson request status updated to '{new_status}'.")
+            return redirect('admin_view_requests')
+
+    return render(request, 'lesson_requests/update_request_status.html', {
+        'lesson_request': lesson_request,
+        'tutors': tutors
+    })
