@@ -10,7 +10,7 @@ from django.views.generic.edit import FormView, UpdateView
 from django.urls import reverse
 from tutorials.forms import LogInForm, PasswordForm, UserForm, SignUpForm
 from tutorials.helpers import login_prohibited
-from .models import LessonRequest
+from .models import LessonRequest, AllocatedLesson
 from .forms import LessonRequestForm
 from django.core.exceptions import PermissionDenied
 
@@ -20,7 +20,7 @@ def dashboard(request):
     """Display the current user's dashboard."""
 
     current_user = request.user
-    allocated_lessons = LessonRequest.objects.filter(student=request.user, status="allocated")
+    allocated_lessons = AllocatedLesson.objects.filter(lesson_request__student=current_user)
     return render(request, 'dashboard.html', {'user': current_user, 'allocated_lessons': allocated_lessons})
 
 
@@ -211,6 +211,9 @@ def update_request_status(request, pk):
     if request.method == 'POST':
         new_status = request.POST.get('status')
         lesson_request.status = new_status
+        lesson_request.lesson_date = request.POST.get('lesson_date') or lesson_request.lesson_date
+        lesson_request.preferred_tutor_id = request.POST.get('preferred_tutor') or lesson_request.preferred_tutor_id
+        lesson_request.no_of_weeks = request.POST.get('no_of_weeks') or lesson_request.no_of_weeks
         lesson_request.save()
         return redirect('admin_view_requests')
     return render(request, 'lesson_requests/update_request_status.html', {'lesson_request': lesson_request})

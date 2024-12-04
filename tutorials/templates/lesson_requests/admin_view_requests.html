@@ -21,6 +21,8 @@
                         <th>Status</th>
                         <th>Student</th>
                         <th>Lesson Date</th>
+                        <th>Preferred Tutor</th>
+                        <th>No. of Weeks</th>
                         <th>Actions</th>
                     </tr>
                     {% for request in requests %}
@@ -29,6 +31,8 @@
                         <td>{{ request.status }}</td>
                         <td>{{ request.student }}</td>
                         <td>{{ request.lesson_date }}</td>
+                        <td>{{ request.preferred_tutor }}</td>
+                        <td>{{ request.no_of_weeks }}</td>
                         <td>
                             <a href="{% url 'update_request_status' request.id %}" class="btn btn-warning">Update Status</a>
                         </td>

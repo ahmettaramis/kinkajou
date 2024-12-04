@@ -43,10 +43,10 @@
               <tbody>
                 {% for lesson in allocated_lessons %}
                   <tr>
-                    <td>{{ lesson.title }}</td>
-                    <td>{{ lesson.tutor }}</td>
-                    <td>{{ lesson.lesson_date|date:"Y-m-d" }}</td>
-                    <td>{{ lesson.lesson_date|date:"H:i" }}</td>
+                    <td>{{ lesson.lesson_request.title }}</td>
+                    <td>{{ lesson.lesson_request.preferred_tutor }}</td>
+                    <td>{{ lesson.date|date:"Y-m-d" }}</td>
+                    <td>{{ lesson.date|date:"H:i" }}</td>
                   </tr>
                 {% endfor %}
               </tbody>
