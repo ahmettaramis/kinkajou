@@ -12,13 +12,26 @@ def login_prohibited(view_function):
             return view_function(request)
     return modified_view_function
 
-def admin_required(view_function):
-    """Decorator to restrict a view to admin users."""
+def is_admin(function):
+    """Decorator to check if the user is an admin."""
+    def wrap(request, *args, **kwargs):
+        if request.user.role != 'admin':
+            return redirect('home')  # Redirect to home or a custom error page
+        return function(request, *args, **kwargs)
+    return wrap
 
-    def modified_view_function(request, *args, **kwargs):
-        if not request.user.is_staff: 
-            return HttpResponseForbidden("You do not have the necessary permissions to view this page.")
-        else:
-            return view_function(request, *args, **kwargs)
-    
-    return modified_view_function
+def is_tutor(function):
+    """Decorator to check if the user is a tutor."""
+    def wrap(request, *args, **kwargs):
+        if request.user.role != 'tutor':
+            return redirect('home')  # Redirect to home or a custom error page
+        return function(request, *args, **kwargs)
+    return wrap
+
+def is_student(function):
+    """Decorator to check if the user is a student."""
+    def wrap(request, *args, **kwargs):
+        if request.user.role != 'student':
+            return redirect('home')  # Redirect to home or a custom error page
+        return function(request, *args, **kwargs)
+    return wrap

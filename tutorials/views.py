@@ -1,26 +1,37 @@
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import login, logout
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth import login, logout, get_user_model
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ImproperlyConfigured
 from django.db.models import Count
 from django.http import HttpResponseNotAllowed
-from django.shortcuts import redirect, render, get_object_or_404
+from django.shortcuts import redirect, render, get_object_or_404, get_object_or_404, get_object_or_404
 from django.views import View
 from django.views.generic.edit import FormView, UpdateView
-from django.views.decorators.http import require_POST
+from django.views.generic.list import ListView
+from django.views.generic.base import TemplateView
 from django.urls import reverse
+from django.db.models import Prefetch
 from tutorials.forms import LogInForm, PasswordForm, UserForm, SignUpForm, InvoiceForm
-from tutorials.helpers import login_prohibited, admin_required
-from tutorials.models import Invoice, Lesson
+from tutorials.helpers import login_prohibited
+from tutorials.models import Invoice
+from .models import User, Tutor, Schedule
+from .forms import ScheduleForm
+
+from .models import LessonRequest, AllocatedLesson
+from .forms import LessonRequestForm
+from .helpers import *
+from django.core.exceptions import PermissionDenied
+
 
 @login_required
 def dashboard(request):
     """Display the current user's dashboard."""
 
     current_user = request.user
-    return render(request, 'dashboard.html', {'user': current_user})
+    allocated_lessons = AllocatedLesson.objects.filter(lesson_request__student=current_user)
+    return render(request, 'dashboard.html', {'user': current_user, 'allocated_lessons': allocated_lessons})
 
 
 @login_prohibited
@@ -155,12 +166,166 @@ class SignUpView(LoginProhibitedMixin, FormView):
     def get_success_url(self):
         return reverse(settings.REDIRECT_URL_WHEN_LOGGED_IN)
 
-@admin_required
-def view_invoices(request):
-    invoices = Invoice.objects.all()
-    return render(request, 'invoices.html', {'invoices' : invoices})
+User = get_user_model()
 
-@require_POST
+# Student: Submit Lesson Request
+@login_required
+@is_student
+def create_lesson_request(request):
+    if request.method == 'POST':
+        form = LessonRequestForm(request.POST)
+        if form.is_valid():
+            lesson_request = form.save(commit=False)
+            lesson_request.student = request.user
+            lesson_request.save()
+            return redirect('student_view_requests')
+    else:
+        form = LessonRequestForm()
+    return render(request, 'lesson_requests/create_request.html', {'form': form})
+
+# Student: View Own Requests
+@login_required
+@is_student
+def student_view_requests(request):
+    requests = LessonRequest.objects.filter(student=request.user)
+    return render(request, 'lesson_requests/student_view_requests.html', {'requests': requests})
+
+# Admin: View All Requests
+@login_required
+@is_admin
+def admin_view_requests(request):
+    status_filter = request.GET.get('status')  # Get status filter from query params
+    if status_filter:
+        requests = LessonRequest.objects.filter(status=status_filter)
+    else:
+        requests = LessonRequest.objects.all()
+    return render(request, 'lesson_requests/admin_view_requests.html', {'requests': requests})
+
+# Admin: Update Request Status
+@login_required
+@is_admin
+def update_request_status(request, pk):
+    lesson_request = get_object_or_404(LessonRequest, pk=pk)
+    tutors = User.objects.filter(role = "tutor")
+    try:
+        invoice = Invoice.objects.get(lesson_request=lesson_request)
+    except Invoice.DoesNotExist:
+        invoice = None
+    
+    if request.method == 'POST':
+        new_status = request.POST.get('status')
+        selected_tutor_id = request.POST.get('preferred_tutor')
+
+        # Validate that a tutor is selected if allocating
+        if new_status == 'allocated' and not selected_tutor_id:
+            messages.error(request, "You must assign a tutor before allocating the lesson.")
+        else:
+            # Assign the tutor if provided
+            if selected_tutor_id:
+                tutor = User.objects.get(id=selected_tutor_id)
+                lesson_request.preferred_tutor = tutor
+            
+            # Update the status
+            lesson_request.status = new_status
+            lesson_request.save()
+
+            # Update invoice
+            if not invoice:
+                amount = request.POST.get('invoice_amount')
+                is_paid = request.POST.get('invoice_is_paid')
+                if is_paid == "on":
+                    is_paid = True
+                else:
+                    is_paid = False
+                    
+                invoice = Invoice.objects.create(lesson_request=lesson_request, amount=amount, is_paid=is_paid)
+            else:
+                invoice.is_paid = request.POST.get('invoice_is_paid')
+
+            # Redirect with a success message
+            messages.success(request, f"Lesson request status updated to '{new_status}'.")
+            return redirect('admin_view_requests')
+
+    return render(request, 'lesson_requests/update_request_status.html', {
+        'lesson_request': lesson_request,
+        'tutors': tutors,
+        'invoice': invoice
+    })
+
+    
+
+class TutorListView(ListView):
+    """View to display all tutors."""
+    
+    model = Tutor  
+    template_name = 'tutor_list.html' 
+    context_object_name = 'tutors'
+
+    def get_queryset(self):
+        queryset = Tutor.objects.prefetch_related(
+            Prefetch(
+                'user__schedules',
+                queryset=Schedule.objects.order_by('day_of_week', 'start_time'),
+                to_attr='available_schedules'
+            )
+        )
+
+        # Get search parameters
+        subjects = self.request.GET.get('subjects', 'any')
+        day = self.request.GET.get('day', 'any')
+
+        # Filter by subject
+        if subjects != "any":
+            queryset = queryset.filter(subjects=subjects)
+
+        # Filter by day
+        if day != "any":
+            queryset = queryset.filter(user__schedules__day_of_week__iexact=day)
+
+        return queryset.distinct()
+
+    def get_context_data(self, **kwargs):
+        """Provide context for populating dropdowns."""
+        context = super().get_context_data(**kwargs)
+        context['subjects'] = Tutor.TOPICS  # Pass subjects to the template
+        context['days'] = Schedule.DAYS_OF_WEEK  # Pass days to the template
+        return context
+
+class TutorAvailabilityUpdateView(LoginRequiredMixin, TemplateView):
+    template_name = 'update_schedule.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        tutor = get_object_or_404(Tutor, user=self.request.user)
+
+        #implement a 403?
+        """ if self.request.user.role != 'tutor':
+            raise PermissionDenied("You do not have permission to access this page.") """
+        
+        context['availability'] = Schedule.objects.filter(user=tutor.user)
+        context['form'] = ScheduleForm()
+        return context
+
+    def post(self, request, *args, **kwargs):
+        tutor = get_object_or_404(Tutor, user=request.user)
+
+        if 'delete_schedule' in request.POST:
+            schedule_id = request.POST.get('delete_schedule')
+            schedule = get_object_or_404(Schedule, id=schedule_id, user=tutor.user)
+            schedule.delete()
+            return redirect('update_schedule')
+
+        form = ScheduleForm(request.POST)
+        if form.is_valid():
+            schedule = form.save(commit=False)
+            schedule.user = tutor.user
+            schedule.save()
+            return redirect('update_schedule')
+
+        return self.render_to_response(self.get_context_data(form=form))
+
+@login_required
+@is_admin
 def toggle_invoice_paid(request):
     if request.method == 'POST':
         invoice_id = request.POST.get('invoice_id')
@@ -171,25 +336,19 @@ def toggle_invoice_paid(request):
     
     return HttpResponseNotAllowed(['POST'])
 
-@admin_required
-def lessons_view(request):
-    lessons = Lesson.objects.annotate(invoice_count=Count('invoice'))
-
-    return render(request, 'lessons.html', {'lessons': lessons})
-
-@admin_required
-def generate_invoice(request, lesson_id):
-    print(f"Lesson ID: {lesson_id}")
-    lesson = get_object_or_404(Lesson, id=lesson_id)
+@login_required
+@is_admin
+def generate_invoice(request, lesson_request_id):
+    lesson_request = get_object_or_404(LessonRequest, id=lesson_request_id)
     
     if request.method == 'POST':
         form = InvoiceForm(request.POST)
         if form.is_valid():
             invoice = form.save(commit=False)
-            invoice.lesson = lesson 
+            invoice.lesson_request = lesson_request 
             invoice.save()
-            return redirect('lessons') 
+            return redirect('admin_view_requests') 
     else:
-        form = InvoiceForm(initial={'lesson': lesson, 'is_paid': False})
+        form = InvoiceForm(initial={'lesson_request': lesson_request, 'is_paid': False})
     
-    return render(request, 'generate_invoice.html', {'form': form, 'lesson': lesson})
+    return render(request, 'generate_invoice.html', {'form': form, 'lesson_request': lesson_request})

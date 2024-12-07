@@ -1,0 +1,49 @@
+{% extends "base_content.html" %}
+{% block content %}
+<div class="container">
+    <h2>Update Lesson Request Status</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="status" class="form-label">Status</label>
+            <select name="status" id="status" class="form-control">
+                <option value="unallocated" {% if lesson_request.status == "unallocated" %}selected{% endif %}>Unallocated</option>
+                <option value="allocated" {% if lesson_request.status == "allocated" %}selected{% endif %}>Allocated</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="preferred_tutor" class="form-label">Assign a Tutor (Required for Allocated)</label>
+            <select name="preferred_tutor" id="preferred_tutor" class="form-control">
+                <option value="" {% if not lesson_request.preferred_tutor %}selected{% endif %}>-- Select a Tutor --</option>
+                {% for tutor in tutors %}
+                <option value="{{ tutor.id }}" {% if lesson_request.preferred_tutor and lesson_request.preferred_tutor.id == tutor.id %}selected{% endif %}>
+                    {{ tutor.first_name }} {{ tutor.last_name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="invoice" class="form-label">Generate Invoice</label>
+            {% if not invoice %}
+            <div>
+                <label for="invoice_amount">Amount (£):</label>
+                <input type="number" step="0.01" name="invoice_amount" id="invoice_amount" required>
+            </div>
+            {% else %}
+            <div>
+                <label for="invoice_amount">Amount (£): {{ invoice.amount }}</label>
+            </div>
+            {% endif %}
+            <div>
+                <label for="invoice_is_paid">Paid?</label>
+                <input type="checkbox" name="invoice_is_paid" id="invoice_is_paid" {% if invoice and invoice.is_paid %}checked{% endif %}>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Update</button>
+        <a href="{% url 'admin_view_requests' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

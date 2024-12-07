@@ -1,27 +1,23 @@
-from django.core.management.base import BaseCommand, CommandError
-
-from django.contrib.auth.models import Group
-from tutorials.models import User, Lesson, Invoice
-
-import pytz
+from django.core.management.base import BaseCommand
+from tutorials.models import User, Tutor, Student, Schedule
 from faker import Faker
-from datetime import timezone
-from random import randint, random, choice
+from random import choice, randint
+from datetime import time
 
+# User fixtures
 user_fixtures = [
-    {'username': '@johndoe', 'email': 'john.doe@example.org', 'first_name': 'John', 'last_name': 'Doe', 'is_staff' : True, 'groups': ['Admins', 'Students', 'Tutors']},
-    {'username': '@janedoe', 'email': 'jane.doe@example.org', 'first_name': 'Jane', 'last_name': 'Doe', 'is_staff' : False, 'groups': ['Tutors']},
-    {'username': '@charlie', 'email': 'charlie.johnson@example.org', 'first_name': 'Charlie', 'last_name': 'Johnson', 'is_staff' : False, 'groups': ['Students']},
+    {'username': '@johndoe', 'email': 'john.doe@example.org', 'first_name': 'John', 'last_name': 'Doe','role': 'admin'},
+    {'username': '@janedoe', 'email': 'jane.doe@example.org', 'first_name': 'Jane', 'last_name': 'Doe', 'role': 'tutor'},
+    {'username': '@charlie', 'email': 'charlie.johnson@example.org', 'first_name': 'Charlie', 'last_name': 'Johnson', 'role': 'student'},
 ]
 seed_groups = ['Students', 'Tutors']
 
 
 class Command(BaseCommand):
-    """Build automation command to seed the database."""
+    USER_COUNT = 50
+    STUDENT_COUNT = int(USER_COUNT * 0.7)
+    TUTOR_COUNT = USER_COUNT - STUDENT_COUNT
 
-    USER_COUNT = 100
-    LESSON_COUNT = 50
-    INVOICE_COUNT = 21
     DEFAULT_PASSWORD = 'Password123'
     user_groups = ['Admins', 'Students', 'Tutors']
     help = 'Seeds the database with sample data'
@@ -30,120 +26,101 @@ class Command(BaseCommand):
         self.faker = Faker('en_GB')
 
     def handle(self, *args, **options):
-        self.create_user_groups()
-        self.groups = Group.objects.all()
-    
-        self.create_users()
-        self.users = User.objects.all()
+        print("Seeding users, tutors, and students...")
 
-        self.create_lessons()
-        self.lessons = Lesson.objects.all()
+        self.create_user_fixtures()
+        self.create_tutors()
+        self.create_students()
 
-        self.create_invoices()
-        self.invoices = Invoice.objects.all()
-    
-    def create_user_groups(self):
-        for group_name in self.user_groups:
-            group, _ = Group.objects.get_or_create(name=group_name)
-        
-        print("User group seeding complete.     ")
+        print(f"Seeding complete. {self.TUTOR_COUNT} tutors and {self.STUDENT_COUNT} students created.")
 
-    def create_users(self):
-        self.generate_user_fixtures()
-        self.generate_random_users()
-
-    def create_lessons(self):
-        lesson_count = Lesson.objects.count()
-        while  lesson_count < self.LESSON_COUNT:
-            self.generate_lesson()
-            lesson_count = Lesson.objects.count()
-        print("Lesson seeding complete.     ")
-
-    def generate_lesson(self):
-        tutor = choice(User.objects.filter(groups__name='Tutors'))
-        student = choice(User.objects.filter(groups__name='Students'))
-        description = "Seeded description."
-        time = self.faker.date_time(tzinfo=timezone.utc)
-
-        Lesson.objects.create(
-            tutor=tutor,
-            student=student,
-            description=description,
-            time=time
-        )
-
-    def create_invoices(self):
-        invoice_count = Invoice.objects.count()
-        while  invoice_count < self.INVOICE_COUNT:
-            self.generate_invoice()
-            invoice_count = Invoice.objects.count()
-        print("Invoice seeding complete.     ")
-
-    def generate_invoice(self):
-        lesson = choice(Lesson.objects.all())
-        amount = randint(10,100)
-        is_paid = False
-        created_at = self.faker.date_time(tzinfo=timezone.utc)
-
-        Invoice.objects.create(
-            lesson=lesson,
-            amount=amount,
-            is_paid=is_paid,
-            created_at=created_at
-        )
-
-    def generate_user_fixtures(self):
+    def create_user_fixtures(self):
         for data in user_fixtures:
-            self.try_create_user(data)
+            user = create_unique_user(data, self.DEFAULT_PASSWORD)
+            if data['role'] == 'tutor':
+                Tutor.objects.create(user=user, subjects=choice(Tutor.TOPICS)[0])
+            elif data['role'] == 'student':
+                Student.objects.create(user=user)
 
-    def generate_random_users(self):
-        user_count = User.objects.count()
-        while  user_count < self.USER_COUNT:
-            print(f"Seeding user {user_count}/{self.USER_COUNT}", end='\r')
-            self.generate_user()
-            user_count = User.objects.count()
-        print("User seeding complete.      ")
 
-    def generate_user(self):
-        first_name = self.faker.first_name()
-        last_name = self.faker.last_name()
-        email = create_email(first_name, last_name)
-        username = create_username(first_name, last_name)
-        is_staff = False
-        groups = [choice(seed_groups)]
-        self.try_create_user(
-            {'username': username, 
-            'email': email, 
-            'first_name': first_name, 
-            'last_name': last_name, 
-            'is_staff' : is_staff,
-            'groups' : groups}
+    def create_tutors(self):
+        for i in range(self.TUTOR_COUNT):
+            first_name = self.faker.first_name()
+            last_name = self.faker.last_name()
+            username = create_unique_username(first_name, last_name)
+            email = create_unique_email(first_name, last_name)
+            user = create_unique_user(
+                {'username': username, 'email': email, 'first_name': first_name, 'last_name': last_name, 'role': 'tutor'},
+                self.DEFAULT_PASSWORD
             )
-       
-    def try_create_user(self, data):
-        try:
-            self.create_user(data)
-        except Exception as e:
-            print(f"Error creating user: {e}")
+            tutor = Tutor.objects.create(
+                user=user,
+                subjects=choice(Tutor.TOPICS)[0],
+            )
+            if i % 2 == 0:  # every other tutor gets a pre existing schedule
+                self.create_schedule(tutor)
 
-    def create_user(self, data):
-        user = User.objects.create_user(
-            username=data['username'],
-            email=data['email'],
-            password=Command.DEFAULT_PASSWORD,
-            first_name=data['first_name'],
-            last_name=data['last_name'],
-            is_staff=data['is_staff']
-        )
+            print(f"\rCreating tutors: {i + 1}/{self.TUTOR_COUNT}", end="")
+        print("\nTutors created.")
 
-        # Assign groups after the user is created
-        for group_name in data['groups']:
-            group = Group.objects.get(name=group_name)
-            user.groups.add(group)
-        user.save()
+    def create_students(self):
+        tutors = list(Tutor.objects.all())
+        if not tutors:
+            print("No tutors available for student assignment.")
+            return
 
-def create_username(first_name, last_name):
-    return '@' + first_name.lower() + last_name.lower()
+        for i in range(self.STUDENT_COUNT):
+            first_name = self.faker.first_name()
+            last_name = self.faker.last_name()
+            username = create_unique_username(first_name, last_name)
+            email = create_unique_email(first_name, last_name)
+            user = create_unique_user(
+                {'username': username, 'email': email, 'first_name': first_name, 'last_name': last_name, 'role': 'student'},
+                self.DEFAULT_PASSWORD
+            )
+            tutor = choice(tutors) if randint(1, 100) <= 20 else None  #around 20% pre-assigned students
+            Student.objects.create(user=user, tutor=tutor)
 
-def create_email(first_name, last_name):
-    return first_name + '.' + last_name + '@example.org'
+            print(f"\rCreating students: {i + 1}/{self.STUDENT_COUNT}", end="")
+        print("\nStudents created.")
+
+    def create_schedule(self, tutor):
+        num_slots = randint(1, 5)
+        days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+        for _ in range(num_slots):
+            day = choice(days)
+            start_hour = randint(8, 16)
+            end_hour = start_hour + 1
+            Schedule.objects.create(
+                user=tutor.user,
+                day_of_week=day,
+                start_time=time(start_hour, 0),
+                end_time=time(end_hour, 0),
+            )
+
+
+def create_unique_user(data, password):
+    return User.objects.create_user(
+        username=data['username'],
+        email=data['email'],
+        password=password,
+        first_name=data['first_name'],
+        last_name=data['last_name'],
+        role=data['role']
+    )
+
+def create_unique_username(first_name, last_name):
+    base_username = f"@{first_name.lower()}{last_name.lower()}"
+    counter = 1
+    while User.objects.filter(username=base_username).exists():
+        base_username = f"@{first_name.lower()}{last_name.lower()}{counter}"
+        counter += 1
+    return base_username
+
+def create_unique_email(first_name, last_name):
+    base_email = f"{first_name.lower()}.{last_name.lower()}@example.org"
+    counter = 1
+    while User.objects.filter(email=base_email).exists():
+        base_email = f"{first_name.lower()}.{last_name.lower()}{counter}@example.org"
+        counter += 1
+    return base_email

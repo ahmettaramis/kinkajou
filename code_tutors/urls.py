@@ -29,9 +29,15 @@ urlpatterns = [
     path('password/', views.PasswordView.as_view(), name='password'),
     path('profile/', views.ProfileUpdateView.as_view(), name='profile'),
     path('sign_up/', views.SignUpView.as_view(), name='sign_up'),
-    path('view_invoices/', views.view_invoices, name='invoices'),
+    path('tutors/', views.TutorListView.as_view(), name='tutors'),
+    path('update_schedule/', views.TutorAvailabilityUpdateView.as_view(), name='update_schedule'),
+     # Student views
+    path('lesson_requests/create/', views.create_lesson_request, name='create_lesson_request'),
+    path('lesson_requests/view/', views.student_view_requests, name='student_view_requests'),
+    # Admin views
+    path('lesson_requests/admin/', views.admin_view_requests, name='admin_view_requests'),
+    path('lesson_requests/<int:pk>/update-status/', views.update_request_status, name='update_request_status'),
     path('toggle-invoice-paid/', views.toggle_invoice_paid, name='toggle_invoice_paid'),
-    path('lessons/', views.lessons_view, name='lessons'),
-    path('generate_invoice/<int:lesson_id>/', views.generate_invoice, name='generate_invoice'),
+    path('generate_invoice/<int:lesson_request_id>/', views.generate_invoice, name='generate_invoice'),
 ] 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
