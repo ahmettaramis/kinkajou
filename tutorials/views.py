@@ -195,11 +195,12 @@ def student_view_requests(request):
 @is_admin
 def admin_view_requests(request):
     status_filter = request.GET.get('status')  # Get status filter from query params
+    invoices = Invoice.objects.all()
     if status_filter:
         requests = LessonRequest.objects.filter(status=status_filter)
     else:
         requests = LessonRequest.objects.all()
-    return render(request, 'lesson_requests/admin_view_requests.html', {'requests': requests})
+    return render(request, 'lesson_requests/admin_view_requests.html', {'requests': requests, 'invoices': invoices})
 
 # Admin: Update Request Status
 @login_required
@@ -237,7 +238,7 @@ def update_request_status(request, pk):
                     is_paid = True
                 else:
                     is_paid = False
-                    
+
                 invoice = Invoice.objects.create(lesson_request=lesson_request, amount=amount, is_paid=is_paid)
             else:
                 invoice.is_paid = request.POST.get('invoice_is_paid')
@@ -326,23 +327,29 @@ class TutorAvailabilityUpdateView(LoginRequiredMixin, TemplateView):
 
 @login_required
 @is_admin
-def toggle_invoice_paid(request):
-    if request.method == 'POST':
-        invoice_id = request.POST.get('invoice_id')
+def toggle_invoice_paid(request, invoice_id):
+    if request.method == 'GET':
         invoice = get_object_or_404(Invoice, id=invoice_id)
         invoice.is_paid = not invoice.is_paid
         invoice.save()
-        return redirect('invoices')
+        return redirect('admin_view_requests')
     
-    return HttpResponseNotAllowed(['POST'])
+    return HttpResponseNotAllowed(['GET'])
 
 @login_required
 @is_admin
 def generate_invoice(request, lesson_request_id):
     lesson_request = get_object_or_404(LessonRequest, id=lesson_request_id)
-    
+    try:
+        invoice = Invoice.objects.get(lesson_request=lesson_request)
+    except Invoice.DoesNotExist:
+        invoice = None
+
     if request.method == 'POST':
         form = InvoiceForm(request.POST)
+        if invoice:
+            invoice.delete()
+
         if form.is_valid():
             invoice = form.save(commit=False)
             invoice.lesson_request = lesson_request 
@@ -351,4 +358,4 @@ def generate_invoice(request, lesson_request_id):
     else:
         form = InvoiceForm(initial={'lesson_request': lesson_request, 'is_paid': False})
     
-    return render(request, 'generate_invoice.html', {'form': form, 'lesson_request': lesson_request})
+    return render(request, 'generate_invoice.html', {'form': form, 'lesson_request': lesson_request, 'invoice': invoice})

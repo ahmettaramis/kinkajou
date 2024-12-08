@@ -3,30 +3,34 @@
 
 <div class="container">
     <h2>Generate Invoice for Lesson Request: {{ lesson_request.title }}</h2>
-    <p><strong>Tutor:</strong> {{ lesson_request.preferred_tutor }}</p>
-    <p><strong>Student:</strong> {{ lesson_request.student }}</p>
-    <p><strong>Number of Weeks:</strong> {{ lesson_request.no_of_weeks }}</p>
+    {% if invoice %}
+    <h3><strong>Warning: An invoice already exists for this request, creating a new invoice will delete the existing invoice.</strong></h3>
+    {% endif %}
+    <p>Description: {{ lesson_request.description}}</p>
+    <p>Tutor: {{ lesson_request.preferred_tutor }}</p>
+    <p>Student: {{ lesson_request.student }}</p>
+    <p>Number of Weeks: {{ lesson_request.no_of_weeks }}</p>
 
-    <h3>Invoice</h3>
+    <h3>Generate Invoice</h3>
 
     <form action="{% url 'generate_invoice' lesson_request.id %}" method="post">
         {% csrf_token %}
-        <div>
+        <div class="mb-3">
             <label for="amount">Amount (£):</label>
-            <input type="number" step="0.01" name="amount" id="amount" required>
+            <input type="number" step="0.01" name="amount" id="amount" {% if invoice %} value="{{ invoice.amount }}" {% endif %} required>
         </div>
 
         <div>
             <label for="is_paid">Paid?</label>
-            <input type="checkbox" name="is_paid" id="is_paid">
+            <input type="checkbox" name="is_paid" id="is_paid" {% if invoice %} value="{{ invoice.is_paid }}" {% endif %}>
         </div>
 
         <div>
-            <button type="submit">Create Invoice</button>
+            <button type="submit" class="btn btn-primary">Create Invoice</button>
         </div>
     </form>
 
-    <p><a href="{% url 'admin_view_requests' %}">Back to Lesson Requests</a></p>
+    <a href="{% url 'admin_view_requests' %}" class="btn btn-secondary">Cancel</a>
 </div>
 
 {% endblock %}

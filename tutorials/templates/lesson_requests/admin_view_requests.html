@@ -29,12 +29,18 @@
                     <tr>
                         <td>{{ request.title }}</td>
                         <td>{{ request.status }}</td>
-                        <td>{{ request.student }}</td>
+                        <td>{{ request.student }}</td>  
                         <td>{{ request.lesson_date }}</td>
                         <td>{{ request.preferred_tutor }}</td>
                         <td>{{ request.no_of_weeks }}</td>
                         <td>
                             <a href="{% url 'update_request_status' request.id %}" class="btn btn-warning">Update Status</a>
+                            <a href="{% url 'generate_invoice' request.id %}" class="btn btn-warning">Generate Invoice</a>
+                            {% for invoice in invoices %}
+                            {% if invoice.lesson_request == request %}
+                            <a href="{% url 'toggle_invoice_paid' invoice.id %}" class="btn btn-primary">{% if invoice.is_paid %} Unmark as paid {% else %} Mark as paid {% endif %}</a>
+                            {% endif %}
+                            {% endfor %}    
                         </td>
                     </tr>
                     {% endfor %}
