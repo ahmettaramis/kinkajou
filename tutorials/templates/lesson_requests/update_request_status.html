@@ -3,7 +3,7 @@
 <div class="container">
     <h2>Update Lesson Request Status</h2>
 
-    <!-- Table displaying lesson request data -->
+    <!-- Horizontal table displaying a single lesson request entry -->
     <table class="table table-bordered">
         <tbody>
             <tr>
@@ -24,7 +24,7 @@
             </tr>
             <tr>
                 <th>Day of The Week</th>
-                <td>{{ lesson_request.day_of_the_week }}</td>
+                <td>{% if lesson_request.day_of_the_week %}{{ lesson_request.day_of_the_week }}{% else %}N/A{% endif %}</td>
             </tr>
             <tr>
                 <th>Duration</th>
@@ -50,9 +50,9 @@
         <div class="mb-3">
             <label for="lesson_requests_as_tutor" class="form-label">Assign a Tutor (Required for Allocated)</label>
             <select name="lesson_requests_as_tutor" id="lesson_requests_as_tutor" class="form-control">
-                <option value="" {% if not lesson_request.lesson_requests_as_tutor %}selected{% endif %}>-- Select a Tutor --</option>
+                <option value="" {% if not lesson_request.tutor_id %}selected{% endif %}>-- Select a Tutor --</option>
                 {% for tutor in tutors %}
-                <option value="{{ tutor.id }}" {% if lesson_request.lesson_requests_as_tutor and lesson_request.lesson_requests_as_tutor.id == tutor.id %}selected{% endif %}>
+                <option value="{{ tutor.id }}" {% if lesson_request.tutor_id and lesson_request.tutor_id.id == tutor.id %}selected{% endif %}>
                     {{ tutor.first_name }} {{ tutor.last_name }}
                 </option>
                 {% endfor %}
