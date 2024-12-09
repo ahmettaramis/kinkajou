@@ -2,8 +2,42 @@
 {% block content %}
 <div class="container">
     <h2>Update Lesson Request Status</h2>
+
+    <!-- Table displaying lesson request data -->
+    <table class="table table-bordered">
+        <tbody>
+            <tr>
+                <th>Language</th>
+                <td>{{ lesson_request.language }}</td>
+            </tr>
+            <tr>
+                <th>Student Name</th>
+                <td>{{ lesson_request.student_id.first_name }} {{ lesson_request.student_id.last_name }}</td>
+            </tr>
+            <tr>
+                <th>Tutor</th>
+                <td>{% if lesson_request.tutor_id %}{{ lesson_request.tutor_id.first_name }} {{ lesson_request.tutor_id.last_name }}{% else %}N/A{% endif %}</td>
+            </tr>
+            <tr>
+                <th>Term</th>
+                <td>{{ lesson_request.term }}</td>
+            </tr>
+            <tr>
+                <th>Day of The Week</th>
+                <td>{{ lesson_request.day_of_the_week }}</td>
+            </tr>
+            <tr>
+                <th>Duration</th>
+                <td>{{ lesson_request.duration }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Form to update the lesson request status -->
     <form method="post">
         {% csrf_token %}
+
+        <!-- Status Selection -->
         <div class="mb-3">
             <label for="status" class="form-label">Status</label>
             <select name="status" id="status" class="form-control">
@@ -12,6 +46,7 @@
             </select>
         </div>
 
+        <!-- Tutor Assignment -->
         <div class="mb-3">
             <label for="lesson_requests_as_tutor" class="form-label">Assign a Tutor (Required for Allocated)</label>
             <select name="lesson_requests_as_tutor" id="lesson_requests_as_tutor" class="form-control">
@@ -24,6 +59,13 @@
             </select>
         </div>
 
+        <!-- Start Time Input -->
+        <div class="mb-3">
+            <label for="start_time" class="form-label">Start Time</label>
+            <input type="time" name="start_time" id="start_time" class="form-control" value="{{ lesson_request.start_time|default:'' }}">
+        </div>
+
+        <!-- Submit and Cancel Buttons -->
         <button type="submit" class="btn btn-primary">Update</button>
         <a href="{% url 'admin_view_requests' %}" class="btn btn-secondary">Cancel</a>
     </form>
