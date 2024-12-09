@@ -13,6 +13,37 @@
       {% elif user.role == 'tutor' %}
         <h2>Tutor Dashboard</h2>
         <div class="mt-3">
+          <h1>Welcome, {{ user.first_name }} {{ user.last_name }}</h1>
+          <h2>Your Allocated Lessons</h2>
+
+          {% if allocated_lessons %}
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Title</th>
+                <th>Student</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for lesson in allocated_lessons %}
+                <tr>
+                  <td>{{ forloop.counter }}</td>
+                  <td>{{ lesson.lesson_request.title }}</td>
+                  <td>{{ lesson.lesson_request.student.full_name }}</td>
+                  <td>{{ lesson.date|date:"Y-m-d" }}</td>
+                  <td>{{ lesson.date|date:"H:i" }}</td>
+                  <td>{{ lesson.lesson_request.description }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <p>No allocated lessons at the moment.</p>
+        {% endif %}
         </div>
       
       {% elif user.role == 'student' %}
