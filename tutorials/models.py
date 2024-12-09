@@ -114,16 +114,21 @@ class Schedule(models.Model):
     def __str__(self):
         return f"{self.user.username}: {self.day_of_week} {self.start_time}-{self.end_time}"
     
+    def clean(self):
+        if self.start_time > self.end_time:
+            raise ValidationError("Start time cannot be after end time.")
+    
     def save(self, *args, **kwargs):
-        
+        # Filter for overlapping schedules for the same user and same day
         overlapping_schedules = Schedule.objects.filter(
-            day_of_week=self.day_of_week
-        ).exclude(id=self.id)
+            user=self.user,  # Restrict to the same user
+            day_of_week=self.day_of_week  # Restrict to the same day
+        ).exclude(id=self.id)  # Exclude the current instance
 
-        # Filter schedules that overlap
+        # Find overlaps
         overlapping_schedules = [
             schedule for schedule in overlapping_schedules
-            if schedule.start_time < self.end_time and schedule.end_time > self.start_time
+            if schedule.start_time <= self.end_time and schedule.end_time >= self.start_time
         ]
 
         if overlapping_schedules:
@@ -131,7 +136,7 @@ class Schedule(models.Model):
             for schedule in overlapping_schedules:
                 self.start_time = min(self.start_time, schedule.start_time)
                 self.end_time = max(self.end_time, schedule.end_time)
-                #delete all overlaps
+                # Delete the overlapping schedules
                 schedule.delete()
 
         #save new shcedule

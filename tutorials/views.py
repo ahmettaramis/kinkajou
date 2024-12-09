@@ -280,19 +280,30 @@ class TutorListView(ListView):
 
 class TutorAvailabilityUpdateView(LoginRequiredMixin, TemplateView):
     template_name = 'update_schedule.html'
-    
+
     def dispatch(self, request, *args, **kwargs):
-        # Redirect to home if the user is not an admin
+        # Redirect to home if the user is not a tutor
         if request.user.role != 'tutor':
             return redirect('home')
         return super().dispatch(request, *args, **kwargs)
 
-    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         tutor = get_object_or_404(Tutor, user=self.request.user)
-        
-        context['availability'] = Schedule.objects.filter(user=tutor.user)
+
+        # Define the day order mapping
+        day_order = {
+            "Monday": 2, "Tuesday": 3, "Wednesday": 4, "Thursday": 5,
+            "Friday": 6, "Saturday": 7, "Sunday": 1,
+        }
+
+        # Fetch schedules and sort them by day_of_week and start_time
+        schedules = Schedule.objects.filter(user=tutor.user)
+        sorted_schedules = sorted(
+            schedules,
+            key=lambda s: (day_order.get(s.day_of_week, 8), s.start_time)
+        )
+        context['availability'] = sorted_schedules
         context['form'] = ScheduleForm()
         return context
 
