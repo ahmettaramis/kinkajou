@@ -232,13 +232,18 @@ def update_request_status(request, pk):
     })
 
     
-
 class TutorListView(ListView):
     """View to display all tutors."""
-    
+
     model = Tutor  
     template_name = 'tutor_list.html' 
     context_object_name = 'tutors'
+
+    def dispatch(self, request, *args, **kwargs):
+        # Redirect to home if the user is not an admin
+        if request.user.role != 'admin':
+            return redirect('home')
+        return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
         queryset = Tutor.objects.prefetch_related(
@@ -272,16 +277,20 @@ class TutorListView(ListView):
 
 
 
+
 class TutorAvailabilityUpdateView(LoginRequiredMixin, TemplateView):
     template_name = 'update_schedule.html'
+    
+    def dispatch(self, request, *args, **kwargs):
+        # Redirect to home if the user is not an admin
+        if request.user.role != 'tutor':
+            return redirect('home')
+        return super().dispatch(request, *args, **kwargs)
+
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         tutor = get_object_or_404(Tutor, user=self.request.user)
-
-        #implement a 403?
-        """ if self.request.user.role != 'tutor':
-            raise PermissionDenied("You do not have permission to access this page.") """
         
         context['availability'] = Schedule.objects.filter(user=tutor.user)
         context['form'] = ScheduleForm()
