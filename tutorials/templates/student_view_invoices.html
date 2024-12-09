@@ -17,7 +17,7 @@
                   <tr>
                     <td>{{ invoice.lesson_request.title }}</td>
                     <td>{{ invoice.lesson_request.preferred_tutor }}</td>
-                    <td>{{ invoice.amount }}</td>
+                    <td>£{{ invoice.amount }}</td>
                     <td>{% if invoice.is_paid %}PAID{% else %}NOT PAID{% endif %}</td>
                   </tr>
                 {% endfor %}
