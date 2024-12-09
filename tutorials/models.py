@@ -7,6 +7,9 @@ from django.utils.timezone import now, timedelta
 
 from libgravatar import Gravatar
 
+from code_tutors import settings
+
+
 class User(AbstractUser):
     """Model used for user authentication, and team member related information."""
 
@@ -204,10 +207,8 @@ class LessonRequest(models.Model):
     ]
 
     DURATION_CHOICES = [
-        (15, '15 minutes'),
-        (30, '30 minutes'),
-        (45, '45 minutes'),
         (60, '60 minutes'),
+        (120, '120 minutes'),
     ]
 
     student_id = models.ForeignKey('tutorials.User', on_delete=models.CASCADE, related_name='lesson_requests_as_student')
@@ -232,8 +233,21 @@ class AllocatedLesson(models.Model):
         related_name='allocated_lessons'
     )
     occurrence = models.PositiveIntegerField()
-    date = models.DateTimeField()
-    duration = models.IntegerField()  # Duration in minutes, inherited from LessonRequest
+    date = models.DateField()
+    time = models.TimeField()
+    language = models.CharField(max_length=100)
+    student_id = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='allocated_lessons_as_student'  # Custom related_name to avoid conflict
+    )
+    tutor_id = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name='allocated_lessons_as_tutor'  # Custom related_name to avoid conflict
+    )
 
     class Meta:
         unique_together = ('lesson_request', 'occurrence')

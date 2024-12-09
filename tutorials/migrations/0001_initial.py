@@ -76,10 +76,8 @@ class Migration(migrations.Migration):
                     ('Monthly', 'Monthly')],
                     max_length=10)),
                 ('duration', models.IntegerField(choices=[
-                    (15, '15 minutes'),
-                    (30, '30 minutes'),
-                    (45, '45 minutes'),
-                    (60, '60 minutes')])),
+                    (60, '60 minutes'),
+                    (120, '120 minutes')])),
                 ('description', models.TextField(blank=True)),
                 ('status', models.CharField(default='Pending', max_length=20)),
                 ('date_created', models.DateTimeField(default=django.utils.timezone.now)),
@@ -127,8 +125,22 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('occurrence', models.PositiveIntegerField()),
-                ('date', models.DateTimeField()),
-                ('lesson_request', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='allocated_lessons', to='tutorials.lessonrequest')),
+                ('date', models.DateField()),
+                ('time', models.TimeField()),
+                ('language', models.CharField(max_length=100)),
+                ('lesson_request',
+                 models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='allocated_lessons',
+                                   to='tutorials.lessonrequest')),
+                ('student_id', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE,
+                    related_name='allocated_lessons_as_student',  # Updated related_name
+                    to=settings.AUTH_USER_MODEL)),
+                ('tutor_id', models.ForeignKey(
+                    blank=True,
+                    null=True,
+                    on_delete=django.db.models.deletion.SET_NULL,
+                    related_name='allocated_lessons_as_tutor',  # Updated related_name
+                    to=settings.AUTH_USER_MODEL)),
             ],
             options={
                 'unique_together': {('lesson_request', 'occurrence')},

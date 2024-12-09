@@ -1,3 +1,6 @@
+from datetime import datetime, timedelta
+
+from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login, logout, get_user_model
@@ -203,11 +206,11 @@ def admin_view_requests(request):
 @is_admin
 def update_request_status(request, pk):
     lesson_request = get_object_or_404(LessonRequest, pk=pk)
-    tutors = User.objects.filter(role = "tutor")
+    tutors = User.objects.filter(role="tutor")
 
     if request.method == 'POST':
         new_status = request.POST.get('status')
-        selected_tutor_id = request.POST.get('preferred_tutor')
+        selected_tutor_id = request.POST.get('lesson_requests_as_tutor')
 
         # Validate that a tutor is selected if allocating
         if new_status == 'allocated' and not selected_tutor_id:
@@ -216,11 +219,57 @@ def update_request_status(request, pk):
             # Assign the tutor if provided
             if selected_tutor_id:
                 tutor = User.objects.get(id=selected_tutor_id)
-                lesson_request.preferred_tutor = tutor
-            
+                lesson_request.tutor = tutor  # Correctly assign tutor as a ForeignKey object
+
             # Update the status
             lesson_request.status = new_status
             lesson_request.save()
+
+            # Create allocated lessons if status is 'allocated'
+            if new_status == 'allocated':
+                # Get the term's start and end date ranges
+                term_start_date, term_end_date = get_term_date_range(lesson_request.term, lesson_request.date_created)
+
+                # Calculate lesson frequency (assuming weekly for this example, but can be adjusted)
+                lesson_day = lesson_request.day_of_the_week
+                frequency = lesson_request.frequency
+                lesson_duration = lesson_request.duration  # Duration in minutes
+                start_time_str = request.POST.get('start_time')  # Start time as string
+
+                if start_time_str:
+                    # Assuming start_time is provided in HH:MM format
+                    start_time = datetime.strptime(start_time_str, '%H:%M').time()
+                    current_time = datetime.combine(datetime.today(), start_time)
+
+                    # Generate lessons for the duration of the term based on frequency
+                    if frequency == 'Weekly':
+                        delta = timedelta(weeks=1)
+                    elif frequency == 'Bi-Weekly':
+                        delta = timedelta(weeks=2)
+                    else:  # Monthly
+                        delta = timedelta(weeks=4)
+
+                    occurrence = 1
+                    lesson_date = term_start_date
+
+                    # Loop through the term date range and create allocated lessons
+                    while lesson_date <= term_end_date:
+                        # Adjust lesson date to match the correct weekday
+                        while lesson_date.weekday() != lesson_request.day_of_the_week:
+                            lesson_date += timedelta(days=1)
+
+                        # Create the allocated lesson
+                        AllocatedLesson.objects.create(
+                            lesson_request=lesson_request,  # Link to the original lesson request
+                            occurrence=occurrence,  # Store the occurrence of the lesson
+                            date=lesson_date,  # Set the lesson date
+                            time=start_time,  # Set the lesson start time
+                            language=lesson_request.language,  # Set the language
+                            student_id=lesson_request.student_id,  # Associate the student
+                            tutor_id=lesson_request.tutor,  # Associate the tutor
+                        )
+                        occurrence += 1
+                        lesson_date += delta  # Move to the next occurrence
 
             # Redirect with a success message
             messages.success(request, f"Lesson request status updated to '{new_status}'.")
@@ -231,6 +280,37 @@ def update_request_status(request, pk):
         'tutors': tutors
     })
 
+def get_term_date_range(term, date_created):
+    if not isinstance(date_created, datetime):
+        raise TypeError("date_created must be a datetime object")
+
+
+    current_year = date_created.year
+    if term == 'Sept-Christmas':
+        lower_date = datetime(current_year, 9, 1)
+        upper_date = datetime(current_year, 12, 25)
+    elif term == 'Jan-Easter':
+        lower_date = datetime(current_year, 1, 1)
+        upper_date = datetime(current_year, 4, 15)
+    elif term == 'March-June':
+        lower_date = datetime(current_year, 3, 1)
+        upper_date = datetime(current_year, 6, 30)
+    else:
+        raise ValueError(f"Unknown term: {term}")
+
+    # Ensure both are offset-naive
+    if date_created.tzinfo is not None:
+        date_created = date_created.replace(tzinfo=None)  # Remove timezone info
+
+    if upper_date.tzinfo is not None:
+        upper_date = upper_date.replace(tzinfo=None)  # Remove timezone info
+
+    # If the term has already passed this year, set it for next year
+    if date_created > upper_date:
+        lower_date = lower_date.replace(year=current_year + 1)
+        upper_date = upper_date.replace(year=current_year + 1)
+
+    return lower_date, upper_date
     
 
 class TutorListView(ListView):
