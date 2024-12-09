@@ -31,8 +31,15 @@ def dashboard(request):
 
     current_user = request.user
     allocated_lessons = AllocatedLesson.objects.filter(lesson_request__student=current_user)
-    return render(request, 'dashboard.html', {'user': current_user, 'allocated_lessons': allocated_lessons})
+    invoices = Invoice.objects.filter(lesson_request__student=current_user)
+    invoice_actions_needed = 0
+    for invoice in invoices:
+        if not invoice.is_paid:
+            invoice_actions_needed += 1
 
+    return render(request, 'dashboard.html', 
+                  {'user': current_user, 'allocated_lessons': allocated_lessons, 'invoice_actions_needed': invoice_actions_needed}
+                  )
 
 @login_prohibited
 def home(request):
@@ -189,6 +196,13 @@ def create_lesson_request(request):
 def student_view_requests(request):
     requests = LessonRequest.objects.filter(student=request.user)
     return render(request, 'lesson_requests/student_view_requests.html', {'requests': requests})
+
+# Student: View own invoices
+@login_required
+@is_student
+def student_view_invoices(request):
+    invoices = Invoice.objects.filter(lesson_request__student=request.user)
+    return render(request, 'student_view_invoices.html', {'invoices': invoices})
 
 # Admin: View All Requests
 @login_required

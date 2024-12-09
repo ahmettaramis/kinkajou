@@ -34,6 +34,7 @@ urlpatterns = [
      # Student views
     path('lesson_requests/create/', views.create_lesson_request, name='create_lesson_request'),
     path('lesson_requests/view/', views.student_view_requests, name='student_view_requests'),
+    path('student_view_invoices/', views.student_view_invoices, name='student_view_invoices'),
     # Admin views
     path('lesson_requests/admin/', views.admin_view_requests, name='admin_view_requests'),
     path('lesson_requests/<int:pk>/update-status/', views.update_request_status, name='update_request_status'),
