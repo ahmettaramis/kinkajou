@@ -13,11 +13,11 @@
         </div>
 
         <div class="mb-3">
-            <label for="preferred_tutor" class="form-label">Assign a Tutor (Required for Allocated)</label>
-            <select name="preferred_tutor" id="preferred_tutor" class="form-control">
-                <option value="" {% if not lesson_request.preferred_tutor %}selected{% endif %}>-- Select a Tutor --</option>
+            <label for="lesson_requests_as_tutor" class="form-label">Assign a Tutor (Required for Allocated)</label>
+            <select name="lesson_requests_as_tutor" id="lesson_requests_as_tutor" class="form-control">
+                <option value="" {% if not lesson_request.lesson_requests_as_tutor %}selected{% endif %}>-- Select a Tutor --</option>
                 {% for tutor in tutors %}
-                <option value="{{ tutor.id }}" {% if lesson_request.preferred_tutor and lesson_request.preferred_tutor.id == tutor.id %}selected{% endif %}>
+                <option value="{{ tutor.id }}" {% if lesson_request.lesson_requests_as_tutor and lesson_request.lesson_requests_as_tutor.id == tutor.id %}selected{% endif %}>
                     {{ tutor.first_name }} {{ tutor.last_name }}
                 </option>
                 {% endfor %}

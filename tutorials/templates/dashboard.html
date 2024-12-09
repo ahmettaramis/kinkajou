@@ -23,30 +23,41 @@
         </div>
         <div class="mt-5">
           <h3>Your Allocated Lessons</h3>
-          {% if allocated_lessons %}
-            <table class="table table-striped">
-              <thead>
-                <tr>
-                  <th>Title</th>
-                  <th>Tutor</th>
-                  <th>Date</th>
-                  <th>Time</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for lesson in allocated_lessons %}
-                  <tr>
-                    <td>{{ lesson.lesson_request.title }}</td>
-                    <td>{{ lesson.lesson_request.preferred_tutor }}</td>
-                    <td>{{ lesson.date|date:"Y-m-d" }}</td>
-                    <td>{{ lesson.date|date:"H:i" }}</td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          {% else %}
-            <p>You have no allocated lessons at the moment.</p>
-          {% endif %}
+{% if allocated_lessons %}
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Language</th>
+        <th>Tutor</th>
+        <th>Date</th>
+        <th>Time</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for lesson in allocated_lessons %}
+        <tr>
+          <td>{{ lesson.lesson_request.language }}</td>
+          <td>
+            {{ lesson.lesson_request.tutor_id.first_name }} 
+            {{ lesson.lesson_request.tutor_id.last_name }}
+          </td>
+          <td>{{ lesson.date|date:"Y-m-d" }}</td>
+          <td>{{ lesson.date|date:"H:i" }}</td>
+          <td>
+            <form action="{% url 'cancel_lesson' lesson.id %}" method="POST">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-danger btn-sm">Cancel</button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p>You have no allocated lessons at the moment.</p>
+{% endif %}
+
         </div>
       {% endif %}
     </div>

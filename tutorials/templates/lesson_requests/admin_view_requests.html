@@ -1,45 +1,66 @@
 {% extends "base_content.html" %}
 
 {% block content %}
-    <div class="container">
-        <div class="row">
-            <div class="col-12">
-                <h2>All Lesson Requests</h2>
-                <form method="get">
-                    <label for="status">Filter by status:</label>
-                    <select name="status" id="status" class="form-control">
-                        <option value="">All</option>
-                        <option value="allocated">Allocated</option>
-                        <option value="unallocated">Unallocated</option>
-                    </select>
-                    <button type="submit" class="btn btn-primary">Filter</button>
-                </form>
-                
-                <table class="table">
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h2>All Lesson Requests</h2>
+            <form method="get" class="mb-3">
+                <label for="status">Filter by status:</label>
+                <select name="status" id="status" class="form-control w-25 d-inline-block">
+                    <option value="">All</option>
+                    <option value="Pending" {% if request.GET.status == "Pending" %}selected{% endif %}>Pending</option>
+                    <option value="Approved" {% if request.GET.status == "Approved" %}selected{% endif %}>Approved</option>
+                    <option value="Rejected" {% if request.GET.status == "Rejected" %}selected{% endif %}>Rejected</option>
+                </select>
+                <button type="submit" class="btn btn-primary ml-2">Filter</button>
+            </form>
+            
+            {% if requests %}
+            <table class="table table-striped">
+                <thead>
                     <tr>
-                        <th>Title</th>
+                        <th>Language</th>
                         <th>Status</th>
                         <th>Student</th>
-                        <th>Lesson Date</th>
                         <th>Preferred Tutor</th>
-                        <th>No. of Weeks</th>
+                        <th>Term</th>
+                        <th>Day(s) of the Week</th>
+                        <th>Frequency</th>
+                        <th>Duration</th>
+                        <th>Date Created</th>
                         <th>Actions</th>
                     </tr>
+                </thead>
+                <tbody>
                     {% for request in requests %}
                     <tr>
-                        <td>{{ request.title }}</td>
+                        <td>{{ request.language }}</td>
                         <td>{{ request.status }}</td>
-                        <td>{{ request.student }}</td>
-                        <td>{{ request.lesson_date }}</td>
-                        <td>{{ request.preferred_tutor }}</td>
-                        <td>{{ request.no_of_weeks }}</td>
+                        <td>{{ request.student_id.first_name }} {{ request.student_id.last_name }}</td>
                         <td>
-                            <a href="{% url 'update_request_status' request.id %}" class="btn btn-warning">Update Status</a>
+                            {% if request.tutor_id %}
+                                {{ request.tutor_id.first_name }} {{ request.tutor_id.last_name }}
+                            {% else %}
+                                Not Assigned
+                            {% endif %}
+                        </td>
+                        <td>{{ request.term }}</td>
+                        <td>{{ request.day_of_the_week }}</td>
+                        <td>{{ request.frequency }}</td>
+                        <td>{{ request.duration }} minutes</td>
+                        <td>{{ request.date_created|date:"Y-m-d H:i" }}</td>
+                        <td>
+                            <a href="{% url 'update_request_status' request.id %}" class="btn btn-warning btn-sm">Update Status</a>
                         </td>
                     </tr>
                     {% endfor %}
-                </table>
-            </div>
+                </tbody>
+            </table>
+            {% else %}
+            <p>No lesson requests found for the selected criteria.</p>
+            {% endif %}
         </div>
     </div>
+</div>
 {% endblock %}

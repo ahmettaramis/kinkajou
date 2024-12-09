@@ -27,8 +27,8 @@ def dashboard(request):
     """Display the current user's dashboard."""
 
     current_user = request.user
-    allocated_lessons = AllocatedLesson.objects.filter(lesson_request__student=current_user)
-    return render(request, 'dashboard.html', {'user': current_user, 'allocated_lessons': allocated_lessons})
+    # allocated_lessons = AllocatedLesson.objects.filter(lesson_request__student=current_user)
+    return render(request, 'dashboard.html', {'user': current_user})
 
 
 @login_prohibited
@@ -173,7 +173,7 @@ def create_lesson_request(request):
         form = LessonRequestForm(request.POST)
         if form.is_valid():
             lesson_request = form.save(commit=False)
-            lesson_request.student = request.user
+            lesson_request.student_id = request.user  # Assign the logged-in user as the student
             lesson_request.save()
             return redirect('student_view_requests')
     else:
@@ -184,7 +184,7 @@ def create_lesson_request(request):
 @login_required
 @is_student
 def student_view_requests(request):
-    requests = LessonRequest.objects.filter(student=request.user)
+    requests = LessonRequest.objects.filter(student_id=request.user)
     return render(request, 'lesson_requests/student_view_requests.html', {'requests': requests})
 
 # Admin: View All Requests
