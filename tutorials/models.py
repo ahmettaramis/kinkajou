@@ -80,7 +80,7 @@ class Tutor(models.Model):
     availability = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return f'{self.user.username} - {self.expertise}'
+        return f'{self.user.username} - {self.subjects}'
 
 class Student(models.Model):
     """Model for students, extending User"""
@@ -103,13 +103,47 @@ class Schedule(models.Model):
         ('Sunday', 'Sunday'),
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='schedules')  # For both students and tutors
+    user = models.ForeignKey(User,
+                            on_delete=models.CASCADE,
+                            related_name='schedules',
+                            null=False,
+                            blank=False)
+    
     day_of_week = models.CharField(max_length=10, choices=DAYS_OF_WEEK)
     start_time = models.TimeField()
     end_time = models.TimeField()
 
     def __str__(self):
         return f"{self.user.username}: {self.day_of_week} {self.start_time}-{self.end_time}"
+    
+    def clean(self):
+        if self.start_time > self.end_time:
+            raise ValidationError("Start time cannot be after end time.")
+    
+    def save(self, *args, **kwargs):
+        # Filter for overlapping schedules for the same user and same day
+        overlapping_schedules = Schedule.objects.filter(
+            user=self.user,  # Restrict to the same user
+            day_of_week=self.day_of_week  # Restrict to the same day
+        ).exclude(id=self.id)  # Exclude the current instance
+
+        # Find overlaps
+        overlapping_schedules = [
+            schedule for schedule in overlapping_schedules
+            if schedule.start_time <= self.end_time and schedule.end_time >= self.start_time
+        ]
+
+        if overlapping_schedules:
+            # Adjust the start and end time to encompass all overlaps
+            for schedule in overlapping_schedules:
+                self.start_time = min(self.start_time, schedule.start_time)
+                self.end_time = max(self.end_time, schedule.end_time)
+                # Delete the overlapping schedules
+                schedule.delete()
+
+        #save new shcedule
+        super().save(*args, **kwargs)
+
 
 
 User = get_user_model()

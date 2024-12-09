@@ -282,10 +282,16 @@ def update_request_status(request, pk):
 
 class TutorListView(ListView):
     """View to display all tutors."""
-    
+
     model = Tutor  
     template_name = 'tutor_list.html' 
     context_object_name = 'tutors'
+
+    def dispatch(self, request, *args, **kwargs):
+        # Redirect to home if the user is not an admin
+        if request.user.role != 'admin':
+            return redirect('home')
+        return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
         queryset = Tutor.objects.prefetch_related(
@@ -317,18 +323,35 @@ class TutorListView(ListView):
         context['days'] = Schedule.DAYS_OF_WEEK  # Pass days to the template
         return context
 
+
+
+
 class TutorAvailabilityUpdateView(LoginRequiredMixin, TemplateView):
     template_name = 'update_schedule.html'
-    
+
+    def dispatch(self, request, *args, **kwargs):
+        # Redirect to home if the user is not a tutor
+        if request.user.role != 'tutor':
+            return redirect('home')
+        return super().dispatch(request, *args, **kwargs)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         tutor = get_object_or_404(Tutor, user=self.request.user)
 
-        #implement a 403?
-        """ if self.request.user.role != 'tutor':
-            raise PermissionDenied("You do not have permission to access this page.") """
-        
-        context['availability'] = Schedule.objects.filter(user=tutor.user)
+        # Define the day order mapping
+        day_order = {
+            "Monday": 2, "Tuesday": 3, "Wednesday": 4, "Thursday": 5,
+            "Friday": 6, "Saturday": 7, "Sunday": 1,
+        }
+
+        # Fetch schedules and sort them by day_of_week and start_time
+        schedules = Schedule.objects.filter(user=tutor.user)
+        sorted_schedules = sorted(
+            schedules,
+            key=lambda s: (day_order.get(s.day_of_week, 8), s.start_time)
+        )
+        context['availability'] = sorted_schedules
         context['form'] = ScheduleForm()
         return context
 
