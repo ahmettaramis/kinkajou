@@ -6,11 +6,29 @@
             <div class="col-12">
                 <h2>All Lesson Requests</h2>
                 <form method="get">
-                    <label for="status">Filter by status:</label>
-                    <select name="status" id="status" class="form-control">
-                        <option value="">All</option>
-                        <option value="allocated">Allocated</option>
-                        <option value="unallocated">Unallocated</option>
+                    <label for="filter">Filter:</label>
+                    <select name="filter" id="filter" class="form-control">
+                        <option value="" {% if filter == "" %}selected{% endif %}>
+                            All
+                        </option>
+                        <option value="allocated" {% if filter == "allocated" %}selected{% endif %}>
+                            Allocated
+                        </option>
+                        <option value="unallocated" {% if filter == "unallocated" %}selected{% endif %}>
+                            Unallocated
+                        </option>
+                        <option value="paid" {% if filter == "paid" %}selected{% endif %}>
+                            Paid
+                        </option>
+                        <option value="unpaid" {% if filter == "unpaid" %}selected{% endif %}>
+                            Not Paid
+                        </option>
+                        <option value="invoice_generated" {% if filter == "invoice_generated" %}selected{% endif %}>
+                            Invoice Generated
+                        </option>
+                        <option value="no_invoice_generated" {% if filter == "no_invoice_generated" %}selected{% endif %}>
+                            No Invoice Generated
+                        </option>
                     </select>
                     <button type="submit" class="btn btn-primary">Filter</button>
                 </form>

@@ -208,13 +208,24 @@ def student_view_invoices(request):
 @login_required
 @is_admin
 def admin_view_requests(request):
-    status_filter = request.GET.get('status')  # Get status filter from query params
+    filter = request.GET.get('filter') or "" # Get status filter from query params
     invoices = Invoice.objects.all()
-    if status_filter:
-        requests = LessonRequest.objects.filter(status=status_filter)
-    else:
-        requests = LessonRequest.objects.all()
-    return render(request, 'lesson_requests/admin_view_requests.html', {'requests': requests, 'invoices': invoices})
+    requests = []
+    match filter:
+        case "allocated" | "unallocated":
+            requests = LessonRequest.objects.filter(status=filter)
+        case "paid":
+            requests = LessonRequest.objects.filter(invoice__is_paid=True)
+        case "unpaid":
+            requests = LessonRequest.objects.filter(invoice__is_paid=False)
+        case "invoice_generated":
+            requests = LessonRequest.objects.filter(invoice__isnull=False)
+        case "no_invoice_generated":
+            requests = LessonRequest.objects.filter(invoice__isnull=True)
+        case _:
+            requests = LessonRequest.objects.all()
+
+    return render(request, 'lesson_requests/admin_view_requests.html', {'requests': requests, 'invoices': invoices, 'filter': filter})
 
 # Admin: Update Request Status
 @login_required

@@ -4,7 +4,9 @@
 <div class="container">
     <h2>Generate Invoice for Lesson Request: {{ lesson_request.title }}</h2>
     {% if invoice %}
-    <h3><strong>Warning: An invoice already exists for this request, creating a new invoice will delete the existing invoice.</strong></h3>
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <h3><strong>An invoice already exists for this request, creating a new invoice will delete the existing one.</strong></h3>
+        </div>
     {% endif %}
     <p>Description: {{ lesson_request.description}}</p>
     <p>Tutor: {{ lesson_request.preferred_tutor }}</p>
