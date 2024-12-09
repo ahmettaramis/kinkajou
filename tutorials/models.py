@@ -5,6 +5,8 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.timezone import now, timedelta
 
+from django.core.validators import MinValueValidator
+from decimal import Decimal
 from libgravatar import Gravatar
 
 class User(AbstractUser):
@@ -183,3 +185,10 @@ class AllocatedLesson(models.Model):
 
     def __str__(self):
         return f"Lesson {self.lesson_request.id} - Occurrence {self.occurrence} on {self.date}"
+
+class Invoice(models.Model):
+
+    lesson_request = models.ForeignKey(LessonRequest, on_delete=models.CASCADE, related_name='invoice', null=True, blank=True)
+    amount = models.DecimalField(max_digits=6, decimal_places=2, default=0, validators=[MinValueValidator(Decimal('0.01'))])
+    is_paid = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)

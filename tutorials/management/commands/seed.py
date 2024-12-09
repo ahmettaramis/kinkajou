@@ -10,6 +10,7 @@ user_fixtures = [
     {'username': '@janedoe', 'email': 'jane.doe@example.org', 'first_name': 'Jane', 'last_name': 'Doe', 'role': 'tutor'},
     {'username': '@charlie', 'email': 'charlie.johnson@example.org', 'first_name': 'Charlie', 'last_name': 'Johnson', 'role': 'student'},
 ]
+seed_groups = ['Students', 'Tutors']
 
 
 class Command(BaseCommand):
@@ -18,6 +19,7 @@ class Command(BaseCommand):
     TUTOR_COUNT = USER_COUNT - STUDENT_COUNT
 
     DEFAULT_PASSWORD = 'Password123'
+    user_groups = ['Admins', 'Students', 'Tutors']
     help = 'Seeds the database with sample data'
 
     def __init__(self):

@@ -4,15 +4,18 @@ from django.contrib.auth import login, logout, get_user_model
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ImproperlyConfigured
-from django.shortcuts import redirect, render, get_object_or_404, get_object_or_404
+from django.db.models import Count
+from django.http import HttpResponseNotAllowed
+from django.shortcuts import redirect, render, get_object_or_404, get_object_or_404, get_object_or_404
 from django.views import View
 from django.views.generic.edit import FormView, UpdateView
 from django.views.generic.list import ListView
 from django.views.generic.base import TemplateView
 from django.urls import reverse
 from django.db.models import Prefetch
-from tutorials.forms import LogInForm, PasswordForm, UserForm, SignUpForm
+from tutorials.forms import LogInForm, PasswordForm, UserForm, SignUpForm, InvoiceForm
 from tutorials.helpers import login_prohibited
+from tutorials.models import Invoice
 from .models import User, Tutor, Schedule
 from .forms import ScheduleForm
 
@@ -28,8 +31,15 @@ def dashboard(request):
 
     current_user = request.user
     allocated_lessons = AllocatedLesson.objects.filter(lesson_request__student=current_user)
-    return render(request, 'dashboard.html', {'user': current_user, 'allocated_lessons': allocated_lessons})
+    invoices = Invoice.objects.filter(lesson_request__student=current_user)
+    invoice_actions_needed = 0
+    for invoice in invoices:
+        if not invoice.is_paid:
+            invoice_actions_needed += 1
 
+    return render(request, 'dashboard.html', 
+                  {'user': current_user, 'allocated_lessons': allocated_lessons, 'invoice_actions_needed': invoice_actions_needed}
+                  )
 
 @login_prohibited
 def home(request):
@@ -187,16 +197,35 @@ def student_view_requests(request):
     requests = LessonRequest.objects.filter(student=request.user)
     return render(request, 'lesson_requests/student_view_requests.html', {'requests': requests})
 
+# Student: View own invoices
+@login_required
+@is_student
+def student_view_invoices(request):
+    invoices = Invoice.objects.filter(lesson_request__student=request.user)
+    return render(request, 'student_view_invoices.html', {'invoices': invoices})
+
 # Admin: View All Requests
 @login_required
 @is_admin
 def admin_view_requests(request):
-    status_filter = request.GET.get('status')  # Get status filter from query params
-    if status_filter:
-        requests = LessonRequest.objects.filter(status=status_filter)
-    else:
-        requests = LessonRequest.objects.all()
-    return render(request, 'lesson_requests/admin_view_requests.html', {'requests': requests})
+    filter = request.GET.get('filter') or "" # Get status filter from query params
+    invoices = Invoice.objects.all()
+    requests = []
+    match filter:
+        case "allocated" | "unallocated":
+            requests = LessonRequest.objects.filter(status=filter)
+        case "paid":
+            requests = LessonRequest.objects.filter(invoice__is_paid=True)
+        case "unpaid":
+            requests = LessonRequest.objects.filter(invoice__is_paid=False)
+        case "invoice_generated":
+            requests = LessonRequest.objects.filter(invoice__isnull=False)
+        case "no_invoice_generated":
+            requests = LessonRequest.objects.filter(invoice__isnull=True)
+        case _:
+            requests = LessonRequest.objects.all()
+
+    return render(request, 'lesson_requests/admin_view_requests.html', {'requests': requests, 'invoices': invoices, 'filter': filter})
 
 # Admin: Update Request Status
 @login_required
@@ -204,7 +233,11 @@ def admin_view_requests(request):
 def update_request_status(request, pk):
     lesson_request = get_object_or_404(LessonRequest, pk=pk)
     tutors = User.objects.filter(role = "tutor")
-
+    try:
+        invoice = Invoice.objects.get(lesson_request=lesson_request)
+    except Invoice.DoesNotExist:
+        invoice = None
+    
     if request.method == 'POST':
         new_status = request.POST.get('status')
         selected_tutor_id = request.POST.get('preferred_tutor')
@@ -222,13 +255,27 @@ def update_request_status(request, pk):
             lesson_request.status = new_status
             lesson_request.save()
 
+            # Update invoice
+            if not invoice:
+                amount = request.POST.get('invoice_amount')
+                is_paid = request.POST.get('invoice_is_paid')
+                if is_paid == "on":
+                    is_paid = True
+                else:
+                    is_paid = False
+
+                invoice = Invoice.objects.create(lesson_request=lesson_request, amount=amount, is_paid=is_paid)
+            else:
+                invoice.is_paid = request.POST.get('invoice_is_paid')
+
             # Redirect with a success message
             messages.success(request, f"Lesson request status updated to '{new_status}'.")
             return redirect('admin_view_requests')
 
     return render(request, 'lesson_requests/update_request_status.html', {
         'lesson_request': lesson_request,
-        'tutors': tutors
+        'tutors': tutors,
+        'invoice': invoice
     })
 
     
@@ -270,8 +317,6 @@ class TutorListView(ListView):
         context['days'] = Schedule.DAYS_OF_WEEK  # Pass days to the template
         return context
 
-
-
 class TutorAvailabilityUpdateView(LoginRequiredMixin, TemplateView):
     template_name = 'update_schedule.html'
     
@@ -304,3 +349,38 @@ class TutorAvailabilityUpdateView(LoginRequiredMixin, TemplateView):
             return redirect('update_schedule')
 
         return self.render_to_response(self.get_context_data(form=form))
+
+@login_required
+@is_admin
+def toggle_invoice_paid(request, invoice_id):
+    if request.method == 'GET':
+        invoice = get_object_or_404(Invoice, id=invoice_id)
+        invoice.is_paid = not invoice.is_paid
+        invoice.save()
+        return redirect('admin_view_requests')
+    
+    return HttpResponseNotAllowed(['GET'])
+
+@login_required
+@is_admin
+def generate_invoice(request, lesson_request_id):
+    lesson_request = get_object_or_404(LessonRequest, id=lesson_request_id)
+    try:
+        invoice = Invoice.objects.get(lesson_request=lesson_request)
+    except Invoice.DoesNotExist:
+        invoice = None
+
+    if request.method == 'POST':
+        form = InvoiceForm(request.POST)
+        if invoice:
+            invoice.delete()
+
+        if form.is_valid():
+            invoice = form.save(commit=False)
+            invoice.lesson_request = lesson_request 
+            invoice.save()
+            return redirect('admin_view_requests') 
+    else:
+        form = InvoiceForm(initial={'lesson_request': lesson_request, 'is_paid': False})
+    
+    return render(request, 'generate_invoice.html', {'form': form, 'lesson_request': lesson_request, 'invoice': invoice})

@@ -1,0 +1,27 @@
+{% extends "base_content.html" %}
+
+{% block content %}
+    <div class="container">
+        <table class="table table-striped">
+            <h2> Invoices </h2>
+            <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Tutor</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for invoice in invoices %}
+                  <tr>
+                    <td>{{ invoice.lesson_request.title }}</td>
+                    <td>{{ invoice.lesson_request.preferred_tutor }}</td>
+                    <td>£{{ invoice.amount }}</td>
+                    <td>{% if invoice.is_paid %}PAID{% else %}NOT PAID{% endif %}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+        </table>
+    </div>
+{% endblock %}

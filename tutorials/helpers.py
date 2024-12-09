@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.http import HttpResponseForbidden
 from django.shortcuts import redirect
 
 def login_prohibited(view_function):

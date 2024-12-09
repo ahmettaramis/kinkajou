@@ -17,6 +17,18 @@
     "model": "tutorials.user",
     "pk": 3,
     "fields": {
+    "first_name": "Charlie",
+    "last_name": "Johnson",
+    "username": "@charlie",
+    "email": "charlie.johnson@example.org",
+    "password": "pbkdf2_sha256$260000$4BNvFuAWoTT1XVU8D6hCay$KqDCG+bHl8TwYcvA60SGhOMluAheVOnF1PMz0wClilc=",
+    "is_active": true
+    }
+  },
+  {
+    "model": "tutorials.user",
+    "pk": 4,
+    "fields": {
       "first_name": "Petra",
       "last_name": "Pickles",
       "username": "@petrapickles",
@@ -29,7 +41,7 @@
   },
   {
     "model": "tutorials.user",
-    "pk": 4,
+    "pk": 5,
     "fields": {
       "first_name": "Peter",
       "last_name": "Pickles",

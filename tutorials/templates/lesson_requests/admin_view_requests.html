@@ -6,11 +6,29 @@
             <div class="col-12">
                 <h2>All Lesson Requests</h2>
                 <form method="get">
-                    <label for="status">Filter by status:</label>
-                    <select name="status" id="status" class="form-control">
-                        <option value="">All</option>
-                        <option value="allocated">Allocated</option>
-                        <option value="unallocated">Unallocated</option>
+                    <label for="filter">Filter:</label>
+                    <select name="filter" id="filter" class="form-control">
+                        <option value="" {% if filter == "" %}selected{% endif %}>
+                            All
+                        </option>
+                        <option value="allocated" {% if filter == "allocated" %}selected{% endif %}>
+                            Allocated
+                        </option>
+                        <option value="unallocated" {% if filter == "unallocated" %}selected{% endif %}>
+                            Unallocated
+                        </option>
+                        <option value="paid" {% if filter == "paid" %}selected{% endif %}>
+                            Paid
+                        </option>
+                        <option value="unpaid" {% if filter == "unpaid" %}selected{% endif %}>
+                            Not Paid
+                        </option>
+                        <option value="invoice_generated" {% if filter == "invoice_generated" %}selected{% endif %}>
+                            Invoice Generated
+                        </option>
+                        <option value="no_invoice_generated" {% if filter == "no_invoice_generated" %}selected{% endif %}>
+                            No Invoice Generated
+                        </option>
                     </select>
                     <button type="submit" class="btn btn-primary">Filter</button>
                 </form>
@@ -29,12 +47,18 @@
                     <tr>
                         <td>{{ request.title }}</td>
                         <td>{{ request.status }}</td>
-                        <td>{{ request.student }}</td>
+                        <td>{{ request.student }}</td>  
                         <td>{{ request.lesson_date }}</td>
                         <td>{{ request.preferred_tutor }}</td>
                         <td>{{ request.no_of_weeks }}</td>
                         <td>
                             <a href="{% url 'update_request_status' request.id %}" class="btn btn-warning">Update Status</a>
+                            <a href="{% url 'generate_invoice' request.id %}" class="btn btn-warning">Generate Invoice</a>
+                            {% for invoice in invoices %}
+                            {% if invoice.lesson_request == request %}
+                            <a href="{% url 'toggle_invoice_paid' invoice.id %}" class="btn btn-primary">{% if invoice.is_paid %} Unmark as paid {% else %} Mark as paid {% endif %}</a>
+                            {% endif %}
+                            {% endfor %}    
                         </td>
                     </tr>
                     {% endfor %}
