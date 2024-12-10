@@ -40,7 +40,13 @@ class Command(BaseCommand):
             if data['role'] == 'tutor':
                 Tutor.objects.create(user=user, subjects=choice(Tutor.TOPICS)[0])
             elif data['role'] == 'student':
-                Student.objects.create(user=user)
+                student = Student.objects.create(user=user)
+                #charlie gets janedoe as tutor
+                if data['username'] == '@charlie':
+                    tutor = Tutor.objects.filter(user__username='@janedoe').first()
+                    if tutor:
+                        student.tutor = tutor
+                        student.save()
 
 
     def create_tutors(self):
