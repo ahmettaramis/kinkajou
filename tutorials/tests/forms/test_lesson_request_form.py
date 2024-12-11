@@ -61,3 +61,43 @@ class LessonRequestFormTest(TestCase):
         form = LessonRequestForm(data=data)
         self.assertFalse(form.is_valid())
         self.assertIn("Select a valid choice. 90 is not one of the available choices.", form.errors['duration'])
+
+    def test_valid_form(self):
+        data = {
+            'language': 'Python',
+            'term': 'Sept-Christmas',
+            'day_of_the_week': 'Monday',
+            'frequency': 'Weekly',
+            'duration': 60,
+            'description': 'Help with Python basics.',
+            'tutor_id': self.tutor.id,
+        }
+        form = LessonRequestForm(data=data)
+        self.assertTrue(form.is_valid())
+
+    def test_invalid_language(self):
+        data = {
+            'language': 'InvalidLang',  # Invalid language
+            'term': 'Sept-Christmas',
+            'day_of_the_week': 'Monday',
+            'frequency': 'Weekly',
+            'duration': 60,
+            'description': 'Help with Python basics.',
+            'tutor_id': self.tutor.id,
+        }
+        form = LessonRequestForm(data=data)
+        self.assertFalse(form.is_valid())
+        self.assertIn('language', form.errors)
+
+    def test_missing_tutor_field(self):
+        data = {
+            'language': 'Python',
+            'term': 'Sept-Christmas',
+            'day_of_the_week': 'Monday',
+            'frequency': 'Weekly',
+            'duration': 60,
+            'description': 'Help with Python basics.',
+            # Missing tutor_id
+        }
+        form = LessonRequestForm(data=data)
+        self.assertTrue(form.is_valid())
