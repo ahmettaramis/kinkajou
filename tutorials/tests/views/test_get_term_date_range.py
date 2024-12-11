@@ -1,8 +1,16 @@
+import os
 import unittest
 from datetime import datetime
+from django.conf import settings
+from django.test import TestCase
+
+# Set the settings module for testing
+os.environ['DJANGO_SETTINGS_MODULE'] = 'tutorials.settings'
+
+# Now import your views or models
 from tutorials.views import get_term_date_range  # Adjusted import path
 
-class TestGetTermDateRange(unittest.TestCase):
+class TestGetTermDateRange(TestCase):
     def setUp(self):
         # Common test year for simplicity
         self.test_year = 2024
