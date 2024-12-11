@@ -5,28 +5,50 @@
         <div class="row">
             <div class="col-12">
                 <h2>Your Lesson Requests</h2>
-                <table class="table">
-                    <tr>
-                        <th>Title</th>
+                {% if requests %}
+                  <table class="table table-striped">
+                    <thead>
+                      <tr>
+                        <th>Language</th>
                         <th>Description</th>
                         <th>Status</th>
-                        <th>Lesson Date</th>
-                        <th>Preferred tutor</th>
-                        <th>No. of weeks:</th>
-                    </tr>
-                    {% for request in requests %}
-                    <tr>
-                        <td>{{ request.title }}</td>
-                        <td style="word-wrap: break-word; max-width: 300px;">
+                        <th>Term</th>
+                        <th>Preferred Tutor</th>
+                        <th>Day(s) of the Week</th>
+                        <th>Frequency</th>
+                        <th>Duration</th>
+                        <th>Date Created</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for request in requests %}
+                        <tr>
+                          <td>{{ request.language }}</td>
+                          <td style="word-wrap: break-word; max-width: 300px;">
                             {{ request.description }}
-                        </td>
-                        <td>{{ request.status }}</td>
-                        <td>{{ request.lesson_date }}</td>
-                        <td>{{ request.preferred_tutor }}</td>
-                        <td>{{ request.no_of_weeks }}</td>
-                    </tr>
-                    {% endfor %}
-                </table>
+                          </td>
+                          <td>{{ request.status }}</td>
+                          <td>{{ request.term }}</td>
+                          <td>
+                            {% if request.tutor_id %}
+                                {{ request.tutor_id.first_name }} {{ request.tutor_id.last_name }}
+                            {% else %}
+                                Not Assigned
+                            {% endif %}
+                          </td>
+                          <td>{{ request.day_of_the_week }}</td>
+                          <td>{{ request.frequency }}</td>
+                          <td>{{ request.duration }} minutes</td>
+                          <td>{{ request.date_created|date:"Y-m-d H:i" }}</td>
+                        </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                {% else %}
+                  <p>You have no lesson requests at the moment.</p>
+                {% endif %}
+
+
             </div>
         </div>
     </div>

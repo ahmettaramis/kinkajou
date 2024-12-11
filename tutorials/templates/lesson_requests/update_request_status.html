@@ -2,8 +2,42 @@
 {% block content %}
 <div class="container">
     <h2>Update Lesson Request Status</h2>
+
+    <!-- Horizontal table displaying a single lesson request entry -->
+    <table class="table table-bordered">
+        <tbody>
+            <tr>
+                <th>Language</th>
+                <td>{{ lesson_request.language }}</td>
+            </tr>
+            <tr>
+                <th>Student Name</th>
+                <td>{{ lesson_request.student_id.first_name }} {{ lesson_request.student_id.last_name }}</td>
+            </tr>
+            <tr>
+                <th>Tutor</th>
+                <td>{% if lesson_request.tutor_id %}{{ lesson_request.tutor_id.first_name }} {{ lesson_request.tutor_id.last_name }}{% else %}N/A{% endif %}</td>
+            </tr>
+            <tr>
+                <th>Term</th>
+                <td>{{ lesson_request.term }}</td>
+            </tr>
+            <tr>
+                <th>Day of The Week</th>
+                <td>{% if lesson_request.day_of_the_week %}{{ lesson_request.day_of_the_week }}{% else %}N/A{% endif %}</td>
+            </tr>
+            <tr>
+                <th>Duration</th>
+                <td>{{ lesson_request.duration }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Form to update the lesson request status -->
     <form method="post">
         {% csrf_token %}
+
+        <!-- Status Selection -->
         <div class="mb-3">
             <label for="status" class="form-label">Status</label>
             <select name="status" id="status" class="form-control">
@@ -12,16 +46,40 @@
             </select>
         </div>
 
+        <!-- Tutor Assignment -->
         <div class="mb-3">
-            <label for="preferred_tutor" class="form-label">Assign a Tutor (Required for Allocated)</label>
-            <select name="preferred_tutor" id="preferred_tutor" class="form-control">
-                <option value="" {% if not lesson_request.preferred_tutor %}selected{% endif %}>-- Select a Tutor --</option>
+            <label for="lesson_requests_as_tutor" class="form-label">Assign a Tutor (Required for Allocated)</label>
+            <select name="lesson_requests_as_tutor" id="lesson_requests_as_tutor" class="form-control">
+                <option value="" {% if not lesson_request.tutor_id %}selected{% endif %}>-- Select a Tutor --</option>
                 {% for tutor in tutors %}
-                <option value="{{ tutor.id }}" {% if lesson_request.preferred_tutor and lesson_request.preferred_tutor.id == tutor.id %}selected{% endif %}>
+                <option value="{{ tutor.id }}" {% if lesson_request.tutor_id and lesson_request.tutor_id.id == tutor.id %}selected{% endif %}>
                     {{ tutor.first_name }} {{ tutor.last_name }}
                 </option>
                 {% endfor %}
             </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="start_time" class="form-label">Start Time</label>
+            <input type="time" name="start_time" id="start_time" class="form-control" value="{{ lesson_request.start_time|default:'' }}">
+        </div>
+
+        <div class="mb-3">
+            <label for="invoice" class="form-label">Generate Invoice</label>
+            {% if not invoice %}
+            <div>
+                <label for="invoice_amount">Amount (£):</label>
+                <input type="number" step="0.01" name="invoice_amount" id="invoice_amount" required>
+            </div>
+            {% else %}
+            <div>
+                <label for="invoice_amount">Amount (£): {{ invoice.amount }}</label>
+            </div>
+            {% endif %}
+            <div>
+                <label for="invoice_is_paid">Paid?</label>
+                <input type="checkbox" name="invoice_is_paid" id="invoice_is_paid" {% if invoice and invoice.is_paid %}checked{% endif %}>
+            </div>
         </div>
 
         <button type="submit" class="btn btn-primary">Update</button>

@@ -6,7 +6,7 @@
             <h2> Invoices </h2>
             <thead>
                 <tr>
-                  <th>Title</th>
+                  <th>Language</th>
                   <th>Tutor</th>
                   <th>Amount</th>
                   <th>Status</th>
@@ -15,8 +15,8 @@
               <tbody>
                 {% for invoice in invoices %}
                   <tr>
-                    <td>{{ invoice.lesson_request.title }}</td>
-                    <td>{{ invoice.lesson_request.preferred_tutor }}</td>
+                    <td>{{ invoice.lesson_request.language }}</td>
+                    <td>{% if invoice.lesson_request.tutor_id %}{{ invoice.lesson_request.tutor_id.first_name }} {{ invoice.lesson_request.tutor_id.last_name }}{% else %}No Tutor Assigned{% endif %}</td>
                     <td>£{{ invoice.amount }}</td>
                     <td>{% if invoice.is_paid %}PAID{% else %}NOT PAID{% endif %}</td>
                   </tr>
