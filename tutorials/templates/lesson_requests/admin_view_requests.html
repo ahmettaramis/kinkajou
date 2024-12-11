@@ -35,24 +35,38 @@
                 
                 <table class="table">
                     <tr>
-                        <th>Title</th>
+                        <th>Language</th>
                         <th>Status</th>
                         <th>Student</th>
-                        <th>Lesson Date</th>
                         <th>Preferred Tutor</th>
-                        <th>No. of Weeks</th>
+                        <th>Term</th>
+                        <th>Day(s) of the Week</th>
+                        <th>Frequency</th>
+                        <th>Duration</th>
+                        <th>Date Created</th>
                         <th>Actions</th>
                     </tr>
+                </thead>
+                <tbody>
                     {% for request in requests %}
                     <tr>
-                        <td>{{ request.title }}</td>
+                        <td>{{ request.language }}</td>
                         <td>{{ request.status }}</td>
-                        <td>{{ request.student }}</td>  
-                        <td>{{ request.lesson_date }}</td>
-                        <td>{{ request.preferred_tutor }}</td>
-                        <td>{{ request.no_of_weeks }}</td>
+                        <td>{{ request.student_id.first_name }} {{ request.student_id.last_name }}</td>
                         <td>
-                            <a href="{% url 'update_request_status' request.id %}" class="btn btn-warning">Update Status</a>
+                            {% if request.tutor_id %}
+                                {{ request.tutor_id.first_name }} {{ request.tutor_id.last_name }}
+                            {% else %}
+                                Not Assigned
+                            {% endif %}
+                        </td>
+                        <td>{{ request.term }}</td>
+                        <td>{{ request.day_of_the_week }}</td>
+                        <td>{{ request.frequency }}</td>
+                        <td>{{ request.duration }} minutes</td>
+                        <td>{{ request.date_created|date:"Y-m-d H:i" }}</td>
+                        <td>
+                            <a href="{% url 'update_request_status' request.id %}" class="btn btn-warning btn-sm">Update Status</a>
                             <a href="{% url 'generate_invoice' request.id %}" class="btn btn-warning">Generate Invoice</a>
                             {% for invoice in invoices %}
                             {% if invoice.lesson_request == request %}
@@ -62,8 +76,12 @@
                         </td>
                     </tr>
                     {% endfor %}
-                </table>
-            </div>
+                </tbody>
+            </table>
+            {% else %}
+            <p>No lesson requests found for the selected criteria.</p>
+            {% endif %}
         </div>
     </div>
+</div>
 {% endblock %}
