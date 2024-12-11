@@ -308,19 +308,6 @@ def update_request_status(request, pk):
                         )
                         occurrence += 1
                         lesson_date += delta  # Move to the next occurrence
-            
-            # Update invoice
-            if not invoice:
-                amount = request.POST.get('invoice_amount')
-                is_paid = request.POST.get('invoice_is_paid')
-                if is_paid == "on":
-                    is_paid = True
-                else:
-                    is_paid = False
-
-                invoice = Invoice.objects.create(lesson_request=lesson_request, amount=amount, is_paid=is_paid)
-            else:
-                invoice.is_paid = request.POST.get('invoice_is_paid')
 
             # Redirect with a success message
             messages.success(request, f"Lesson request status updated to '{new_status}'.")
