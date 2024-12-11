@@ -33,16 +33,43 @@ def dashboard(request):
     """Display the current user's dashboard."""
 
     current_user = request.user
-    allocated_lessons = AllocatedLesson.objects.filter(student_id=current_user)
-    invoices = Invoice.objects.filter(lesson_request_id__student_id=current_user)
-    invoice_actions_needed = 0
-    for invoice in invoices:
-        if not invoice.is_paid:
-            invoice_actions_needed += 1
 
-    return render(request, 'dashboard.html', 
-                  {'user': current_user, 'allocated_lessons': allocated_lessons, 'invoice_actions_needed': invoice_actions_needed}
-                  )
+    if current_user.role == 'student':
+        # Fetch lessons allocated to the current student
+        allocated_lessons = AllocatedLesson.objects.filter(student_id=current_user)
+        invoices = Invoice.objects.filter(lesson_request_id__student_id=current_user)
+
+        # Count unpaid invoices
+        invoice_actions_needed = invoices.filter(is_paid=False).count()
+
+        context = {
+            'user': current_user,
+            'allocated_lessons': allocated_lessons,
+            'invoice_actions_needed': invoice_actions_needed
+        }
+
+    elif current_user.role == 'tutor':
+        # Fetch lessons allocated to the current tutor
+        allocated_lessons = AllocatedLesson.objects.filter(tutor_id=current_user)
+
+        # Tutors don't need invoice_actions_needed logic
+        context = {
+            'user': current_user,
+            'allocated_lessons': allocated_lessons
+        }
+
+    else:
+        # If the user is an admin or another role
+        # Show all allocated lessons or apply custom logic
+        allocated_lessons = AllocatedLesson.objects.all()
+
+        # Admins or other roles don't need invoice_actions_needed logic
+        context = {
+            'user': current_user,
+            'allocated_lessons': allocated_lessons
+        }
+
+    return render(request, 'dashboard.html', context)
 
 @login_prohibited
 def home(request):
@@ -214,19 +241,18 @@ def admin_view_requests(request):
     filter = request.GET.get('filter') or "" # Get status filter from query params
     invoices = Invoice.objects.all()
     requests = []
-    match filter:
-        case "allocated" | "unallocated":
-            requests = LessonRequest.objects.filter(status=filter)
-        case "paid":
-            requests = LessonRequest.objects.filter(invoice__is_paid=True)
-        case "unpaid":
-            requests = LessonRequest.objects.filter(invoice__is_paid=False)
-        case "invoice_generated":
-            requests = LessonRequest.objects.filter(invoice__isnull=False)
-        case "no_invoice_generated":
-            requests = LessonRequest.objects.filter(invoice__isnull=True)
-        case _:
-            requests = LessonRequest.objects.all()
+    if filter in ["allocated", "unallocated"]:
+        requests = LessonRequest.objects.filter(status=filter)
+    elif filter == "paid":
+        requests = LessonRequest.objects.filter(invoice__is_paid=True)
+    elif filter == "unpaid":
+        requests = LessonRequest.objects.filter(invoice__is_paid=False)
+    elif filter == "invoice_generated":
+        requests = LessonRequest.objects.filter(invoice__isnull=False)
+    elif filter == "no_invoice_generated":
+        requests = LessonRequest.objects.filter(invoice__isnull=True)
+    else:
+        requests = LessonRequest.objects.all()
 
     return render(request, 'lesson_requests/admin_view_requests.html', {'requests': requests, 'invoices': invoices, 'filter': filter})
 
@@ -358,13 +384,16 @@ def get_term_date_range(term, date_created):
 @login_required
 def cancel_lesson(request, lesson_id):
     if request.method == 'POST':
-        # Get the lesson or return a 404 if not found
-        lesson = get_object_or_404(AllocatedLesson, id=lesson_id, lesson_request__student_id=request.user)
+        # Get the lesson and ensure the current user is either the student or the tutor for the lesson
+        lesson = get_object_or_404(AllocatedLesson, id=lesson_id)
+        
+        # Check if the current user is either the student or the tutor for this lesson
+        if lesson.lesson_request.student_id == request.user or lesson.tutor_id == request.user:
+            lesson.delete()
+            messages.success(request, "Lesson has been cancelled successfully.")
+        else:
+            messages.error(request, "You do not have permission to cancel this lesson.")
 
-        # Delete the lesson
-        lesson.delete()
-
-        # Redirect back to the student dashboard
         return redirect('dashboard')
 
 class TutorListView(ListView):
