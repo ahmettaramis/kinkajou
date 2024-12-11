@@ -267,10 +267,13 @@ def update_request_status(request, pk):
     if request.method == 'POST':
         new_status = request.POST.get('status')
         selected_tutor_id = request.POST.get('lesson_requests_as_tutor')
+        start_time_str = request.POST.get('start_time')
 
         # Validate that a tutor is selected if allocating
         if new_status == 'allocated' and not selected_tutor_id:
             messages.error(request, "You must assign a tutor before allocating the lesson.")
+        elif new_status == 'allocated' and not start_time_str:
+            messages.error(request, "You must provide a start time before allocating the lesson.")
         else:
             # If status is changing from allocated to unallocated delete allocated lessons
             if lesson_request.status == 'allocated' and new_status == 'unallocated':
@@ -289,48 +292,45 @@ def update_request_status(request, pk):
 
             # Create allocated lessons if status is allocated
             if new_status == 'allocated':
+                AllocatedLesson.objects.filter(lesson_request=lesson_request).delete()
                 term_start_date, term_end_date = get_term_date_range(lesson_request.term, lesson_request.date_created)
 
                 # Calculate lesson frequency
-                lesson_day = lesson_request.day_of_the_week
-                frequency = lesson_request.frequency
-                lesson_duration = lesson_request.duration
-                start_time_str = request.POST.get('start_time')
+                frequency_mapping = {
+                    'Weekly': timedelta(weeks=1),
+                    'Bi-Weekly': timedelta(weeks=2),
+                    'Monthly': timedelta(weeks=4),
+                }
+                delta = frequency_mapping.get(lesson_request.frequency)
 
-                if start_time_str:
-                    # Assuming start_time is provided in HH:MM format
-                    start_time = datetime.strptime(start_time_str, '%H:%M').time()
-                    current_time = datetime.combine(datetime.today(), start_time)
+                if not delta:
+                    messages.error(request, "Invalid frequency specified for the lesson request.")
+                    return redirect('admin_view_requests')
+                
+                # Loop to create lessons within the term date range
+                lesson_date = term_start_date
+                occurrence = 1
 
-                    # Generate lessons for the duration of the term based on frequency
-                    if frequency == 'Weekly':
-                        delta = timedelta(weeks=1)
-                    elif frequency == 'Bi-Weekly':
-                        delta = timedelta(weeks=2)
-                    else:  # Monthly
-                        delta = timedelta(weeks=4)
+                while lesson_date <= term_end_date:
+                    # Adjust lesson_date to match the day_of_the_week
+                    while lesson_date.weekday() != day_to_num(lesson_request.day_of_the_week):
+                        lesson_date += timedelta(days=1)
 
-                    occurrence = 1
-                    lesson_date = term_start_date
-
-                    # Loop through the term date range and create allocated lessons
-                    while lesson_date <= term_end_date:
-                        # Adjust lesson date to match the correct weekday
-                        while lesson_date.weekday() != day_to_num(lesson_request.day_of_the_week):
-                            lesson_date += timedelta(days=1)
-
-                        # Create the allocated lesson
-                        AllocatedLesson.objects.create(
-                            lesson_request=lesson_request,
-                            occurrence=occurrence,
-                            date=lesson_date,
-                            time=start_time,
-                            language=lesson_request.language,
-                            student_id=lesson_request.student_id,
-                            tutor_id=lesson_request.tutor,
-                        )
-                        occurrence += 1
-                        lesson_date += delta
+                    if lesson_date > term_end_date:
+                        break
+                
+                # Create an AllocatedLesson instance
+                    AllocatedLesson.objects.create(
+                        lesson_request=lesson_request,
+                        occurrence=occurrence,
+                        date=lesson_date,
+                        time=datetime.strptime(request.POST.get('start_time'), '%H:%M').time(),
+                        language=lesson_request.language,
+                        student_id=lesson_request.student_id,
+                        tutor_id=lesson_request.tutor_id,
+                    )
+                    occurrence += 1
+                    lesson_date += delta
 
             # Redirect with a success message
             messages.success(request, f"Lesson request status updated to '{new_status}'.")

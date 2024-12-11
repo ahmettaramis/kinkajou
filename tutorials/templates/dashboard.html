@@ -20,33 +20,35 @@
           <h3>Your Allocated Lessons</h3>
             {% if allocated_lessons %}
             <table class="table table-striped">
-                <thead>
+              <thead>
+                <tr>
+                  <th>Language</th>
+                  <th>Student</th>
+                  <th>Description</th>
+                  <th>Date</th>
+                  <th>Time</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for lesson in allocated_lessons %}
                   <tr>
-                    <th>Language</th>
-                    <th>Tutor</th>
-                    <th>Date</th>
-                    <th>Time</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for lesson in allocated_lessons %}
-                    <tr>
-                      <td>{{ lesson.lesson_request.language }}</td>
+                    <td>{{ lesson.lesson_request.language }}</td>
+                    <td>
+                      {{ lesson.lesson_request.student_id.first_name }}
+                      {{ lesson.lesson_request.student_id.last_name }}
+                    </td>
+                    <td>{{ lesson.lesson_request.description }}</td>
+                    <td>{{ lesson.date|date:"Y-m-d" }}</td>
+                    <td>{{ lesson.time|time:"H:i" }}</td>
                       <td>
-                        {{ lesson.lesson_request.tutor_id.first_name }}
-                        {{ lesson.lesson_request.tutor_id.last_name }}
+                          <form method="post" action="{% url 'cancel_lesson' lesson.id %}" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger btn-sm">Cancel</button>
+                          </form>
                       </td>
-                      <td>{{ lesson.date|date:"Y-m-d" }}</td>
-                      <td>{{ lesson.time|time:"H:i" }}</td>
-                        <td>
-                            <form method="post" action="{% url 'cancel_lesson' lesson.id %}" style="display:inline;">
-                              {% csrf_token %}
-                              <button type="submit" class="btn btn-danger btn-sm">Cancel</button>
-                            </form>
-                        </td>
-                    </tr>
-                  {% endfor %}
+                  </tr>
+                {% endfor %}
               </tbody>
             </table>
           {% else %}
