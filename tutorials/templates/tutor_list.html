@@ -6,7 +6,7 @@
 
             <h1>Available Tutors</h1>
 
-            <form method="GET" action="{% url 'tutors' %}">
+            <form method="GET" action="{% url 'tutor_list_view' %}">
                 <label for="subjects">Subject:</label>
                 <select id="subjects" name="subjects" class="form-select">
                     <option value="any" {% if request.GET.subjects == "any" or not request.GET.subjects %}selected{% endif %}>Any</option>

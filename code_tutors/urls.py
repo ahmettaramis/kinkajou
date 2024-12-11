@@ -29,7 +29,8 @@ urlpatterns = [
     path('password/', views.PasswordView.as_view(), name='password'),
     path('profile/', views.ProfileUpdateView.as_view(), name='profile'),
     path('sign_up/', views.SignUpView.as_view(), name='sign_up'),
-    path('tutors/', views.TutorListView.as_view(), name='tutors'),
+    # Tutor views
+    path('tutors/', views.TutorListView.as_view(), name='tutor_list_view'),
     path('update_schedule/', views.TutorAvailabilityUpdateView.as_view(), name='update_schedule'),
      # Student views
     path('lesson_requests/create/', views.create_lesson_request, name='create_lesson_request'),
