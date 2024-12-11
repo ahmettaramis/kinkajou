@@ -30,8 +30,8 @@ def dashboard(request):
     """Display the current user's dashboard."""
 
     current_user = request.user
-    # allocated_lessons = AllocatedLesson.objects.filter(lesson_request__student=current_user)
-    return render(request, 'dashboard.html', {'user': current_user})
+    allocated_lessons = AllocatedLesson.objects.filter(student_id=current_user)
+    return render(request, 'dashboard.html', {'user': current_user, 'allocated_lessons': allocated_lessons})
 
 
 @login_prohibited
@@ -315,7 +315,6 @@ def get_term_date_range(term, date_created):
         upper_date = upper_date.replace(year=current_year + 1)
 
     return lower_date, upper_date
-    
 
 class TutorListView(ListView):
     """View to display all tutors."""
