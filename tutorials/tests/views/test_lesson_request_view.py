@@ -52,6 +52,7 @@ class LessonRequestViewTest(TestCase):
             {
                 "status": "allocated",
                 "lesson_requests_as_tutor": self.tutor.id,
+                "start_time": "10:00",
             },
         )
         lesson_request.refresh_from_db()
