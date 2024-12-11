@@ -216,6 +216,11 @@ def update_request_status(request, pk):
         if new_status == 'allocated' and not selected_tutor_id:
             messages.error(request, "You must assign a tutor before allocating the lesson.")
         else:
+            # If status is changing from 'allocated' to 'unallocated', delete allocated lessons
+            if lesson_request.status == 'allocated' and new_status == 'unallocated':
+                AllocatedLesson.objects.filter(lesson_request_id=lesson_request).delete()
+                messages.success(request, "Allocated lessons have been deleted.")
+
             # Assign the tutor if provided
             if selected_tutor_id:
                 tutor = User.objects.get(id=selected_tutor_id)
