@@ -5,7 +5,7 @@ from django.utils import timezone
 from tutorials.forms import InvoiceForm
 from tutorials.models import User, Invoice, LessonRequest
 from decimal import Decimal
-import datetime
+from django.utils.timezone import now, timedelta
 
 class InvoiceFormTestCase(TestCase):
     """Unit Tests of the Invoice Form"""
@@ -16,19 +16,23 @@ class InvoiceFormTestCase(TestCase):
     ]
     
     def setUp(self):
-        self.now = datetime.datetime(2024, 12, 4, 14, 31, 28, 543326, tzinfo=datetime.timezone.utc)
+        self.now = now()
 
         student = User.objects.get(username='@charlie')
         tutor = User.objects.get(username='@janedoe')
 
         self.lesson_request = LessonRequest.objects.create(
-            student=student, 
-            title="Test Title.", 
-            description="Test Description.", 
-            status="unallocated", 
-            lesson_date = timezone.now(), 
-            preferred_tutor=tutor, no_of_weeks=12
-            )
+            student_id=student,
+            tutor_id=tutor,
+            language='Python',
+            term='Sept-Christmas',
+            day_of_the_week='Monday',
+            frequency='Weekly',
+            duration=60,
+            description='',
+            status='Pending',
+            date_created = self.now
+        )
         
         self.form_input = {
             'lesson_request' : self.lesson_request,
