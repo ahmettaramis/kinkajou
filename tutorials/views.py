@@ -229,6 +229,7 @@ def update_request_status(request, pk):
             if new_status == 'allocated':
                 # Get the term's start and end date ranges
                 term_start_date, term_end_date = get_term_date_range(lesson_request.term, lesson_request.date_created)
+                print(term_start_date, term_end_date)
 
                 # Calculate lesson frequency (assuming weekly for this example, but can be adjusted)
                 lesson_day = lesson_request.day_of_the_week
@@ -255,7 +256,7 @@ def update_request_status(request, pk):
                     # Loop through the term date range and create allocated lessons
                     while lesson_date <= term_end_date:
                         # Adjust lesson date to match the correct weekday
-                        while lesson_date.weekday() != lesson_request.day_of_the_week:
+                        while lesson_date.weekday() != day_to_num(lesson_request.day_of_the_week):
                             lesson_date += timedelta(days=1)
 
                         # Create the allocated lesson
@@ -268,6 +269,7 @@ def update_request_status(request, pk):
                             student_id=lesson_request.student_id,  # Associate the student
                             tutor_id=lesson_request.tutor,  # Associate the tutor
                         )
+                        print('created')
                         occurrence += 1
                         lesson_date += delta  # Move to the next occurrence
 
@@ -279,6 +281,10 @@ def update_request_status(request, pk):
         'lesson_request': lesson_request,
         'tutors': tutors
     })
+
+def day_to_num(day):
+    days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+    return days.index(day)
 
 def get_term_date_range(term, date_created):
     if not isinstance(date_created, datetime):
