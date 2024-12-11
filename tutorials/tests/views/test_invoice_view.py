@@ -6,6 +6,7 @@ from django.contrib.auth import get_user_model
 from tutorials.models import Invoice, LessonRequest
 from tutorials.forms import InvoiceForm
 from decimal import Decimal
+from django.utils.timezone import now, timedelta
 
 User = get_user_model()
 
@@ -19,26 +20,33 @@ class InvoiceViewTests(TestCase):
         self.client = Client()
 
         self.student = User.objects.get(username='@charlie')
+        self.tutor = User.objects.get(username='@janedoe')
         self.admin = User.objects.get(username='@johndoe')
 
         self.lesson_request = LessonRequest.objects.create(
-            student=self.student,
-            title="lesson_request",
-            description="Request for Django lessons.",
-            status="unallocated",
-            lesson_date=None,
-            preferred_tutor=None,
-            no_of_weeks=3
+            student_id=self.student,
+            tutor_id=self.tutor,
+            language='Python',
+            term='Sept-Christmas',
+            day_of_the_week='Monday',
+            frequency='Weekly',
+            duration=60,
+            description='',
+            status='Pending',
+            date_created = now()
         )
 
         self.lesson_request1 = LessonRequest.objects.create(
-            student=self.student,
-            title="lesson_request1",
-            description="Request for Django lessons.",
-            status="unallocated",
-            lesson_date=None,
-            preferred_tutor=None,
-            no_of_weeks=3
+            student_id=self.student,
+            tutor_id=self.tutor,
+            language='Python',
+            term='Sept-Christmas',
+            day_of_the_week='Monday',
+            frequency='Weekly',
+            duration=60,
+            description='',
+            status='Pending',
+            date_created = now()
         )
 
         self.invoice = Invoice.objects.create(
@@ -98,13 +106,16 @@ class InvoiceViewTests(TestCase):
         self.client.login(username=self.admin.username, password='Password123')
         
         new_lesson_request = LessonRequest.objects.create(
-            student=self.student,
-            title="generate invoice post create",
-            description="Request for Django lessons.",
-            status="unallocated",
-            lesson_date=None,
-            preferred_tutor=None,
-            no_of_weeks=3
+            student_id=self.student,
+            tutor_id=self.tutor,
+            language='Python',
+            term='Sept-Christmas',
+            day_of_the_week='Monday',
+            frequency='Weekly',
+            duration=60,
+            description='',
+            status='Pending',
+            date_created = now()
         )
         
         url = reverse('generate_invoice', args=[new_lesson_request.pk])
@@ -114,7 +125,6 @@ class InvoiceViewTests(TestCase):
             'is_paid': False
         }
 
-        print('generate_invoice_post_create POST')
         response = self.client.post(url, data=form_data)
         created_invoice = Invoice.objects.get(lesson_request=new_lesson_request)
 
@@ -132,7 +142,6 @@ class InvoiceViewTests(TestCase):
             'is_paid': True
         }
 
-        print('generate_invoice_post_update POST')
         response = self.client.post(url, data=form_data)
         updated_invoice = Invoice.objects.get(lesson_request=self.lesson_request)
 
