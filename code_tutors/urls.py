@@ -39,6 +39,7 @@ urlpatterns = [
     # Admin views
     path('lesson_requests/admin/', views.admin_view_requests, name='admin_view_requests'),
     path('lesson_requests/<int:pk>/update-status/', views.update_request_status, name='update_request_status'),
+    
     path('toggle-invoice-paid/<int:invoice_id>/', views.toggle_invoice_paid, name='toggle_invoice_paid'),
     path('generate_invoice/<int:lesson_request_id>/', views.generate_invoice, name='generate_invoice'),
 ] 

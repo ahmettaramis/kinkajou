@@ -233,10 +233,6 @@ def admin_view_requests(request):
 def update_request_status(request, pk):
     lesson_request = get_object_or_404(LessonRequest, pk=pk)
     tutors = User.objects.filter(role = "tutor")
-    try:
-        invoice = Invoice.objects.get(lesson_request=lesson_request)
-    except Invoice.DoesNotExist:
-        invoice = None
     
     if request.method == 'POST':
         new_status = request.POST.get('status')
@@ -255,30 +251,15 @@ def update_request_status(request, pk):
             lesson_request.status = new_status
             lesson_request.save()
 
-            # Update invoice
-            if not invoice:
-                amount = request.POST.get('invoice_amount')
-                is_paid = request.POST.get('invoice_is_paid')
-                if is_paid == "on":
-                    is_paid = True
-                else:
-                    is_paid = False
-
-                invoice = Invoice.objects.create(lesson_request=lesson_request, amount=amount, is_paid=is_paid)
-            else:
-                invoice.is_paid = request.POST.get('invoice_is_paid')
-
             # Redirect with a success message
             messages.success(request, f"Lesson request status updated to '{new_status}'.")
             return redirect('admin_view_requests')
 
     return render(request, 'lesson_requests/update_request_status.html', {
         'lesson_request': lesson_request,
-        'tutors': tutors,
-        'invoice': invoice
+        'tutors': tutors
     })
 
-    
 
 class TutorListView(ListView):
     """View to display all tutors."""

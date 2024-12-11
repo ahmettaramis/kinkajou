@@ -168,7 +168,7 @@ class LessonRequest(models.Model):
         if self.lesson_date and self.lesson_date < now():
             raise ValidationError("Lesson date cannot be in the past.")
         # Validate number of weeks
-        if self.no_of_weeks < 1 or self.no_of_weeks > 52:
+        if self.no_of_weeks is not None and (self.no_of_weeks < 1 or self.no_of_weeks > 52):
             raise ValidationError("Number of weeks must be between 1 and 52.")
         # Ensure a tutor is assigned when allocating
         if self.status == 'allocated' and not self.preferred_tutor:

@@ -158,7 +158,12 @@ class LessonRequestForm(forms.ModelForm):
         if len(description) > 1000:
             raise forms.ValidationError("Description cannot exceed 1000 characters.")
         return description
-
+    
+    def clean_no_of_weeks(self):
+        no_of_weeks = self.cleaned_data.get('no_of_weeks')
+        if no_of_weeks is None or not (1 <= no_of_weeks <= 52):
+            raise forms.ValidationError("Number of weeks must be between 1 and 52.")
+        return no_of_weeks
     
 
 class ScheduleForm(forms.ModelForm):
