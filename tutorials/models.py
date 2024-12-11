@@ -64,15 +64,14 @@ class Tutor(models.Model):
     """Model for tutors, extending User"""
 
     TOPICS = [
-    ('algorithms', 'Algorithms'),
-    ('databases', 'Databases'),
-    ('web', 'Web'),
-    ('networks', 'Networks'),
-    ('security', 'Security'),
-    ('ai', 'AI'),
-    ('logic', 'Logic'),
-    ('python', 'Python'),
-    ('java', 'Java'),
+        ('Python', 'Python'),
+        ('Java', 'Java'),
+        ('C++', 'C++'),
+        ('Scala', 'Scala'),
+        ('R', 'R'),
+        ('Javascript', 'Javascript'),
+        ('Swift', 'Swift'),
+        ('Go', 'Go'),
     ]
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='tutor_profile')
