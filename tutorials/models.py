@@ -77,7 +77,6 @@ class Tutor(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='tutor_profile')
 
     subjects = models.CharField(max_length=50, choices=TOPICS, blank=True, null=True)
-    availability = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return f'{self.user.username} - {self.expertise}'
@@ -113,63 +112,6 @@ class Schedule(models.Model):
 
 
 User = get_user_model()
-
-# class LessonRequest(models.Model):
-#     # Fields
-#     student = models.ForeignKey(User, on_delete=models.CASCADE, related_name="lesson_requests")
-#     title = models.CharField(max_length=255)
-#     description = models.TextField(max_length=1000)
-#     status = models.CharField(
-#         max_length=50,
-#         choices=[('unallocated', 'Unallocated'), ('allocated', 'Allocated')],
-#         default='unallocated'
-#     )
-#     created_at = models.DateTimeField(auto_now_add=True)
-#     lesson_date = models.DateTimeField(null=True, blank=True)
-#     preferred_tutor = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="preferred_requests")
-#     no_of_weeks = models.PositiveIntegerField()
-#
-#     def clean(self):
-#         # Validate date is not in the past
-#         if self.lesson_date and self.lesson_date < now():
-#             raise ValidationError("Lesson date cannot be in the past.")
-#         # Validate number of weeks
-#         if self.no_of_weeks < 1 or self.no_of_weeks > 52:
-#             raise ValidationError("Number of weeks must be between 1 and 52.")
-#         # Ensure a tutor is assigned when allocating
-#         if self.status == 'allocated' and not self.preferred_tutor:
-#             raise ValidationError("A tutor must be assigned for allocated lessons.")
-#
-#     def __str__(self):
-#         return f"{self.title} ({self.status})"
-#
-#     def allocate_lessons(self):
-#         # Create allocated lessons for this request based on no_of_weeks.
-#         if self.status == 'allocated' and self.lesson_date and self.no_of_weeks:
-#             AllocatedLesson.objects.filter(lesson_request=self).delete()  # Ensure no duplicates
-#             for i in range(self.no_of_weeks):
-#                 AllocatedLesson.objects.create(
-#                     lesson_request=self,
-#                     occurrence=i + 1,
-#                     date=self.lesson_date + timedelta(weeks=i)
-#                 )
-#
-#     def unallocate_lessons(self):
-#         # Remove all allocated lessons for this request.
-#         if self.status == 'unallocated':
-#             AllocatedLesson.objects.filter(lesson_request=self).delete()
-#
-#     def save(self, *args, **kwargs):
-#         # Override save to handle allocation logic.
-#         old_status = LessonRequest.objects.filter(pk=self.pk).first()
-#         old_status = old_status.status if old_status else None
-#         super().save(*args, **kwargs)
-#
-#         # Automatically manage allocated lessons based on status change
-#         if self.status == 'allocated' and old_status != 'allocated':
-#             self.allocate_lessons()
-#         elif self.status == 'unallocated' and old_status != 'unallocated':
-#             self.unallocate_lessons()
 
 class LessonRequest(models.Model):
     LANGUAGE_CHOICES = [

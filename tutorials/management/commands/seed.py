@@ -1,5 +1,6 @@
+import datetime
 from django.core.management.base import BaseCommand
-from tutorials.models import User, Tutor, Student, Schedule
+from tutorials.models import User, Tutor, Student, Schedule, LessonRequest, AllocatedLesson
 from faker import Faker
 from random import choice, randint
 from datetime import time
@@ -39,6 +40,7 @@ class Command(BaseCommand):
                 Tutor.objects.create(user=user, subjects=choice(Tutor.TOPICS)[0])
             elif data['role'] == 'student':
                 Student.objects.create(user=user)
+        create_manual_lesson_request()
 
 
     def create_tutors(self):
@@ -122,3 +124,36 @@ def create_unique_email(first_name, last_name):
         base_email = f"{first_name.lower()}.{last_name.lower()}{counter}@example.org"
         counter += 1
     return base_email
+
+
+def create_manual_lesson_request():
+    # Fetch the student and tutor by username
+    student_user = User.objects.get(username='@charlie')
+    tutor_user = User.objects.get(username='@janedoe')
+
+    # Create a lesson request
+    lesson_request = LessonRequest.objects.create(
+        student_id=student_user,
+        tutor_id=tutor_user,
+        language='Python',
+        term='Sept-Dec',
+        day_of_the_week='Tuesday',
+        frequency='Monthly',
+        duration=60,
+        description='Manual lesson request for seeding.',
+        status='allocated',
+        date_created=datetime.datetime(2024, 8, 20)
+    )
+
+    # Create the allocated lesson
+    lesson_dates = [datetime.datetime(2024, 9, 3), datetime.datetime(2024, 10, 1), datetime.datetime(2024, 11, 5), datetime.datetime(2024, 12, 3)]
+    for i in range(len(lesson_dates)):
+        AllocatedLesson.objects.create(
+            occurrence=i+1,
+            date=lesson_dates[i].date(),
+            time=lesson_dates[i].time(),
+            language=lesson_request.language,
+            student_id=lesson_request.student_id,
+            tutor_id=lesson_request.tutor_id,
+            lesson_request_id=lesson_request.id,
+        )
