@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from decimal import Decimal
 from tutorials.models import Invoice, LessonRequest, User
 import datetime
+from django.utils.timezone import now
 
 
 class InvoiceModelTest(TestCase):
@@ -12,20 +13,22 @@ class InvoiceModelTest(TestCase):
         """
         Set up data for the test case. This runs before each test method.
         """
-        self.now = timezone.now()
+        self.now = now()
         
         student = User.objects.create(username='@charlie', email='charlie@example.com')
         tutor = User.objects.create(username='@janedoe', email='janedoe@example.com')
 
         self.lesson_request = LessonRequest.objects.create(
-            student=student,
-            title="Test Lesson",
-            description="Test Description",
-            status="unallocated",
-            created_at=self.now,
-            lesson_date=self.now,
-            preferred_tutor=tutor,
-            no_of_weeks=12
+            student_id=student,
+            tutor_id=tutor,
+            language='Python',
+            term='Sept-Christmas',
+            day_of_the_week='Monday',
+            frequency='Weekly',
+            duration=60,
+            description='',
+            status='Pending',
+            date_created = self.now
         )
         
         self.invoice_data = {
