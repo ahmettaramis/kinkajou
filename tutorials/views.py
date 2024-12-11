@@ -394,6 +394,9 @@ def cancel_lesson(request, lesson_id):
 
         return redirect('dashboard')
 
+    # Return 405 for methods other than POST
+    return HttpResponseNotAllowed(['POST'])
+
 
 class TutorListView(ListView):
     """View to display all tutors."""
