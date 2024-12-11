@@ -9,9 +9,33 @@
       "email": "johndoe@example.org",
       "password": "pbkdf2_sha256$260000$4BNvFuAWoTT1XVU8D6hCay$KqDCG+bHl8TwYcvA60SGhOMluAheVOnF1PMz0wClilc=",
       "is_active": true,
-      "is_superuser": 1,
-      "is_staff": 1,
       "role" : "admin"
+    }
+  },
+  {
+    "model": "tutorials.user",
+    "pk": 2,
+    "fields": {
+      "first_name": "Jane",
+      "last_name": "Doe",
+      "username": "@janedoe",
+      "email": "janedoe@example.org",
+      "password": "pbkdf2_sha256$260000$4BNvFuAWoTT1XVU8D6hCay$KqDCG+bHl8TwYcvA60SGhOMluAheVOnF1PMz0wClilc=",
+      "is_active": true,
+      "role": "tutor"
+    }
+  },
+  {
+    "model": "tutorials.user",
+    "pk": 3,
+    "fields": {
+    "first_name": "Charlie",
+    "last_name": "Johnson",
+    "username": "@charlie",
+    "email": "charlie.johnson@example.org",
+    "password": "pbkdf2_sha256$260000$4BNvFuAWoTT1XVU8D6hCay$KqDCG+bHl8TwYcvA60SGhOMluAheVOnF1PMz0wClilc=",
+    "is_active": true,
+    "role": "student"
     }
   }
 ]
