@@ -229,7 +229,6 @@ def update_request_status(request, pk):
             if new_status == 'allocated':
                 # Get the term's start and end date ranges
                 term_start_date, term_end_date = get_term_date_range(lesson_request.term, lesson_request.date_created)
-                print(term_start_date, term_end_date)
 
                 # Calculate lesson frequency (assuming weekly for this example, but can be adjusted)
                 lesson_day = lesson_request.day_of_the_week
@@ -269,7 +268,6 @@ def update_request_status(request, pk):
                             student_id=lesson_request.student_id,  # Associate the student
                             tutor_id=lesson_request.tutor,  # Associate the tutor
                         )
-                        print('created')
                         occurrence += 1
                         lesson_date += delta  # Move to the next occurrence
 
