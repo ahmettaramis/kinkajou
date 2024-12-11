@@ -262,10 +262,6 @@ def admin_view_requests(request):
 def update_request_status(request, pk):
     lesson_request = get_object_or_404(LessonRequest, pk=pk)
     tutors = User.objects.filter(role = "tutor")
-    try:
-        invoice = Invoice.objects.get(lesson_request=lesson_request)
-    except Invoice.DoesNotExist:
-        invoice = None
 
     if request.method == 'POST':
         new_status = request.POST.get('status')
