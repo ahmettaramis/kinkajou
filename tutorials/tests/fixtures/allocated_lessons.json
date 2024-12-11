@@ -1,0 +1,41 @@
+[
+  {
+    "model": "tutorials.allocatedlesson",
+    "pk": 1,
+    "fields": {
+      "lesson_request": 1,
+      "occurrence": 1,
+      "date": "2024-12-02",
+      "time": "10:00:00",
+      "language": "Python",
+      "student_id": 3,
+      "tutor_id": 2
+    }
+  },
+  {
+    "model": "tutorials.allocatedlesson",
+    "pk": 2,
+    "fields": {
+      "lesson_request": 1,
+      "occurrence": 2,
+      "date": "2024-12-09",
+      "time": "10:00:00",
+      "language": "Python",
+      "student_id": 3,
+      "tutor_id": 2
+    }
+  },
+  {
+    "model": "tutorials.allocatedlesson",
+    "pk": 3,
+    "fields": {
+      "lesson_request": 1,
+      "occurrence": 3,
+      "date": "2024-12-16",
+      "time": "10:00:00",
+      "language": "Python",
+      "student_id": 3,
+      "tutor_id": 2
+    }
+  }
+]
