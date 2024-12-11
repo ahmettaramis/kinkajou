@@ -5,6 +5,7 @@
         <div class="row">
             <div class="col-12">
                 <h2>All Lesson Requests</h2>
+                {% if requests %}
                 <form method="get">
                     <label for="filter">Filter:</label>
                     <select name="filter" id="filter" class="form-control">

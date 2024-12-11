@@ -34,7 +34,7 @@ def dashboard(request):
 
     current_user = request.user
     allocated_lessons = AllocatedLesson.objects.filter(student_id=current_user)
-    invoices = Invoice.objects.filter(lesson_request__student=current_user)
+    invoices = Invoice.objects.filter(lesson_request_id__student_id=current_user)
     invoice_actions_needed = 0
     for invoice in invoices:
         if not invoice.is_paid:
@@ -204,7 +204,7 @@ def student_view_requests(request):
 @login_required
 @is_student
 def student_view_invoices(request):
-    invoices = Invoice.objects.filter(lesson_request__student=request.user)
+    invoices = Invoice.objects.filter(lesson_request_id__student_id=request.user)
     return render(request, 'student_view_invoices.html', {'invoices': invoices})
 
 # Admin: View All Requests
