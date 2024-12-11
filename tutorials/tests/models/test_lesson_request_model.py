@@ -105,7 +105,7 @@ class LessonRequestModelTest(TestCase):
             duration=60,
             description="Learn Python basics."
         )
-        self.assertEqual(lesson_request.status, "Pending")  # Default status
+        self.assertEqual(lesson_request.status, "Unallocated")  # Default status
 
     def test_tutor_assignment(self):
         lesson_request = LessonRequest.objects.create(

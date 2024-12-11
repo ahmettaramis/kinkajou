@@ -106,4 +106,4 @@ class LessonRequestViewTest(TestCase):
         })
         self.assertEqual(response.status_code, 200)  # Should show error and not redirect
         lesson_request.refresh_from_db()
-        self.assertEqual(lesson_request.status, 'Pending')
+        self.assertEqual(lesson_request.status, 'Unallocated')
