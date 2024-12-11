@@ -1,13 +1,10 @@
 from datetime import datetime, timedelta
-
-from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login, logout, get_user_model
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ImproperlyConfigured
-from django.db.models import Count
 from django.http import HttpResponseNotAllowed
 from django.shortcuts import redirect, render, get_object_or_404, get_object_or_404, get_object_or_404
 from django.views import View
@@ -21,11 +18,9 @@ from tutorials.helpers import login_prohibited
 from tutorials.models import Invoice
 from .models import User, Tutor, Schedule
 from .forms import ScheduleForm
-
 from .models import LessonRequest, AllocatedLesson
 from .forms import LessonRequestForm
 from .helpers import *
-from django.core.exceptions import PermissionDenied
 
 
 @login_required
@@ -70,6 +65,7 @@ def dashboard(request):
         }
 
     return render(request, 'dashboard.html', context)
+
 
 @login_prohibited
 def home(request):
@@ -203,6 +199,7 @@ class SignUpView(LoginProhibitedMixin, FormView):
     def get_success_url(self):
         return reverse(settings.REDIRECT_URL_WHEN_LOGGED_IN)
 
+
 User = get_user_model()
 
 # Student: Submit Lesson Request
@@ -213,12 +210,13 @@ def create_lesson_request(request):
         form = LessonRequestForm(request.POST)
         if form.is_valid():
             lesson_request = form.save(commit=False)
-            lesson_request.student_id = request.user  # Assign the logged-in user as the student
+            lesson_request.student_id = request.user
             lesson_request.save()
             return redirect('student_view_requests')
     else:
         form = LessonRequestForm()
     return render(request, 'lesson_requests/create_request.html', {'form': form})
+
 
 # Student: View Own Requests
 @login_required
@@ -227,6 +225,7 @@ def student_view_requests(request):
     requests = LessonRequest.objects.filter(student_id=request.user)
     return render(request, 'lesson_requests/student_view_requests.html', {'requests': requests})
 
+
 # Student: View own invoices
 @login_required
 @is_student
@@ -234,11 +233,12 @@ def student_view_invoices(request):
     invoices = Invoice.objects.filter(lesson_request_id__student_id=request.user)
     return render(request, 'student_view_invoices.html', {'invoices': invoices})
 
-# Admin: View All Requests
+
+# Admin: View All Submitted Requests
 @login_required
 @is_admin
 def admin_view_requests(request):
-    filter = request.GET.get('filter') or "" # Get status filter from query params
+    filter = request.GET.get('filter') or ""
     invoices = Invoice.objects.all()
     requests = []
     if filter in ["allocated", "unallocated"]:
@@ -256,6 +256,7 @@ def admin_view_requests(request):
 
     return render(request, 'lesson_requests/admin_view_requests.html', {'requests': requests, 'invoices': invoices, 'filter': filter})
 
+
 # Admin: Update Request Status
 @login_required
 @is_admin
@@ -271,7 +272,7 @@ def update_request_status(request, pk):
         if new_status == 'allocated' and not selected_tutor_id:
             messages.error(request, "You must assign a tutor before allocating the lesson.")
         else:
-            # If status is changing from 'allocated' to 'unallocated', delete allocated lessons
+            # If status is changing from allocated to unallocated delete allocated lessons
             if lesson_request.status == 'allocated' and new_status == 'unallocated':
                 AllocatedLesson.objects.filter(lesson_request_id=lesson_request).delete()
                 messages.success(request, "Allocated lessons have been deleted.")
@@ -286,16 +287,15 @@ def update_request_status(request, pk):
             lesson_request.status = new_status
             lesson_request.save()
 
-            # Create allocated lessons if status is 'allocated'
+            # Create allocated lessons if status is allocated
             if new_status == 'allocated':
-                # Get the term's start and end date ranges
                 term_start_date, term_end_date = get_term_date_range(lesson_request.term, lesson_request.date_created)
 
-                # Calculate lesson frequency (assuming weekly for this example, but can be adjusted)
+                # Calculate lesson frequency
                 lesson_day = lesson_request.day_of_the_week
                 frequency = lesson_request.frequency
-                lesson_duration = lesson_request.duration  # Duration in minutes
-                start_time_str = request.POST.get('start_time')  # Start time as string
+                lesson_duration = lesson_request.duration
+                start_time_str = request.POST.get('start_time')
 
                 if start_time_str:
                     # Assuming start_time is provided in HH:MM format
@@ -321,16 +321,16 @@ def update_request_status(request, pk):
 
                         # Create the allocated lesson
                         AllocatedLesson.objects.create(
-                            lesson_request=lesson_request,  # Link to the original lesson request
-                            occurrence=occurrence,  # Store the occurrence of the lesson
-                            date=lesson_date,  # Set the lesson date
-                            time=start_time,  # Set the lesson start time
-                            language=lesson_request.language,  # Set the language
-                            student_id=lesson_request.student_id,  # Associate the student
-                            tutor_id=lesson_request.tutor,  # Associate the tutor
+                            lesson_request=lesson_request,
+                            occurrence=occurrence,
+                            date=lesson_date,
+                            time=start_time,
+                            language=lesson_request.language,
+                            student_id=lesson_request.student_id,
+                            tutor_id=lesson_request.tutor,
                         )
                         occurrence += 1
-                        lesson_date += delta  # Move to the next occurrence
+                        lesson_date += delta
 
             # Redirect with a success message
             messages.success(request, f"Lesson request status updated to '{new_status}'.")
@@ -341,14 +341,15 @@ def update_request_status(request, pk):
         'tutors': tutors
     })
 
+
 def day_to_num(day):
     days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
     return days.index(day)
 
+
 def get_term_date_range(term, date_created):
     if not isinstance(date_created, datetime):
         raise TypeError("date_created must be a datetime object")
-
 
     current_year = date_created.year
     if term == 'Sept-Christmas':
@@ -392,6 +393,7 @@ def cancel_lesson(request, lesson_id):
             messages.error(request, "You do not have permission to cancel this lesson.")
 
         return redirect('dashboard')
+
 
 class TutorListView(ListView):
     """View to display all tutors."""
@@ -484,6 +486,7 @@ class TutorAvailabilityUpdateView(LoginRequiredMixin, TemplateView):
 
         return self.render_to_response(self.get_context_data(form=form))
 
+
 @login_required
 @is_admin
 def toggle_invoice_paid(request, invoice_id):
@@ -494,6 +497,7 @@ def toggle_invoice_paid(request, invoice_id):
         return redirect('admin_view_requests')
     
     return HttpResponseNotAllowed(['GET'])
+
 
 @login_required
 @is_admin

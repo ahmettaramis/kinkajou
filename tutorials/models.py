@@ -1,17 +1,14 @@
 from datetime import datetime
 from django.utils.timezone import make_aware
-
 from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth import get_user_model
 from django.db import models
-from django.utils.timezone import now, timedelta
-
+from django.utils.timezone import now
 from django.core.validators import MinValueValidator
 from decimal import Decimal
 from libgravatar import Gravatar
-
 from code_tutors import settings
 
 
@@ -65,6 +62,7 @@ class User(AbstractUser):
         
         return self.gravatar(size=60)
 
+
 class Tutor(models.Model):
     """Model for tutors, extending User"""
 
@@ -86,6 +84,7 @@ class Tutor(models.Model):
     def __str__(self):
         return f'{self.user.username} - {self.subjects}'
 
+
 class Student(models.Model):
     """Model for students, extending User"""
 
@@ -95,6 +94,7 @@ class Student(models.Model):
 
     def __str__(self):
         return f"{self.user.username}"
+
 
 class Schedule(models.Model):
     DAYS_OF_WEEK = [
@@ -147,7 +147,6 @@ class Schedule(models.Model):
 
         #save new shcedule
         super().save(*args, **kwargs)
-
 
 
 User = get_user_model()
@@ -206,6 +205,7 @@ class LessonRequest(models.Model):
     def __str__(self):
         return f"Request by {self.student_id} for {self.language}"
 
+
 class AllocatedLesson(models.Model):
     LANGUAGE_CHOICES = [
         ('Python', 'Python'),
@@ -255,8 +255,8 @@ class AllocatedLesson(models.Model):
             raise ValidationError("Allocated lesson date cannot be in the past.")
         super().clean()
 
-class Invoice(models.Model):
 
+class Invoice(models.Model):
     lesson_request = models.ForeignKey(LessonRequest, on_delete=models.CASCADE, related_name='invoice', null=True, blank=True)
     amount = models.DecimalField(max_digits=6, decimal_places=2, default=0, validators=[MinValueValidator(Decimal('0.01'))])
     is_paid = models.BooleanField(default=False)
