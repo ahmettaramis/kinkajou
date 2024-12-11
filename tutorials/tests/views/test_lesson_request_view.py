@@ -1,7 +1,6 @@
 from django.test import TestCase, Client
 from django.urls import reverse
-from tutorials.models import LessonRequest, User, AllocatedLesson
-from django.utils.timezone import now, timedelta
+from tutorials.models import LessonRequest, User
 
 class LessonRequestViewTest(TestCase):
     def setUp(self):
@@ -68,12 +67,12 @@ class LessonRequestViewTest(TestCase):
     def test_tutor_access_student_page(self):
         self.client.login(username='tutor1', password='password')
         response = self.client.get(reverse('student_view_requests'))
-        self.assertEqual(response.status_code, 403)  # Tutor should also receive a 403 Forbidden response
+        self.assertEqual(response.status_code, 403)
 
     def test_admin_access_student_page(self):
         self.client.login(username='admin1', password='password')
         response = self.client.get(reverse('student_view_requests'))
-        self.assertEqual(response.status_code, 403)  # Admin should not access student page
+        self.assertEqual(response.status_code, 403)
 
     def test_student_create_lesson_request(self):
         self.client.login(username='student1', password='password')
@@ -87,7 +86,7 @@ class LessonRequestViewTest(TestCase):
             'tutor_id': self.tutor.id,
         }
         response = self.client.post(reverse('create_lesson_request'), data)
-        self.assertEqual(response.status_code, 302)  # Should redirect after creation
+        self.assertEqual(response.status_code, 302)
         self.assertTrue(LessonRequest.objects.filter(student_id=self.student).exists())
 
     def test_admin_update_request_status_without_tutor(self):
@@ -104,6 +103,6 @@ class LessonRequestViewTest(TestCase):
         response = self.client.post(reverse('update_request_status', args=[lesson_request.id]), {
             'status': 'allocated',
         })
-        self.assertEqual(response.status_code, 200)  # Should show error and not redirect
+        self.assertEqual(response.status_code, 200)
         lesson_request.refresh_from_db()
         self.assertEqual(lesson_request.status, 'Unallocated')

@@ -79,7 +79,7 @@ class LessonRequestModelTest(TestCase):
         )
         lesson_request.status = "unallocated"
         lesson_request.save()
-        AllocatedLesson.objects.filter(lesson_request=lesson_request).delete()  # Explicitly delete the allocated lessons
+        AllocatedLesson.objects.filter(lesson_request=lesson_request).delete()
         allocated_lessons = AllocatedLesson.objects.filter(lesson_request=lesson_request)
         self.assertEqual(allocated_lessons.count(), 0)
 
@@ -105,7 +105,7 @@ class LessonRequestModelTest(TestCase):
             duration=60,
             description="Learn Python basics."
         )
-        self.assertEqual(lesson_request.status, "Unallocated")  # Default status
+        self.assertEqual(lesson_request.status, "Unallocated")
 
     def test_tutor_assignment(self):
         lesson_request = LessonRequest.objects.create(

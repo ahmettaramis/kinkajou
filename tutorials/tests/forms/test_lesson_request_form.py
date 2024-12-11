@@ -1,7 +1,6 @@
 from django.test import TestCase
 from tutorials.forms import LessonRequestForm
-from tutorials.models import User, LessonRequest
-from django.utils.timezone import now, timedelta
+from tutorials.models import User
 
 class LessonRequestFormTest(TestCase):
     def setUp(self):
@@ -56,7 +55,7 @@ class LessonRequestFormTest(TestCase):
             'term': 'March-June',
             'day_of_the_week': 'Friday',
             'frequency': 'Weekly',
-            'duration': 90,  # Invalid duration
+            'duration': 90,
         }
         form = LessonRequestForm(data=data)
         self.assertFalse(form.is_valid())
@@ -77,7 +76,7 @@ class LessonRequestFormTest(TestCase):
 
     def test_invalid_language(self):
         data = {
-            'language': 'InvalidLang',  # Invalid language
+            'language': 'InvalidLang',
             'term': 'Sept-Christmas',
             'day_of_the_week': 'Monday',
             'frequency': 'Weekly',
