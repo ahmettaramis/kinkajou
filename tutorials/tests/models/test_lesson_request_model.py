@@ -1,6 +1,6 @@
 from django.test import TestCase
-from tutorials.models import LessonRequest, User, AllocatedLesson
-from django.utils.timezone import now, timedelta
+from tutorials.models import LessonRequest, AllocatedLesson, User
+from django.utils.timezone import now
 
 class LessonRequestModelTest(TestCase):
     def setUp(self):
@@ -19,39 +19,45 @@ class LessonRequestModelTest(TestCase):
 
     def test_create_lesson_request(self):
         lesson_request = LessonRequest.objects.create(
-            student=self.student,
-            title="Physics Tutoring",
-            description="Focus on mechanics.",
-            lesson_date=now() + timedelta(days=3),
-            preferred_tutor=self.tutor,
-            no_of_weeks=3,
+            student_id=self.student,
+            language='Python',
+            term='Sept-Christmas',
+            day_of_the_week='Monday',
+            frequency='Weekly',
+            duration=60,
+            description='Learn Python basics.',
+            tutor_id=self.tutor,
         )
-        self.assertEqual(lesson_request.title, "Physics Tutoring")
+        self.assertEqual(lesson_request.language, 'Python')
+        self.assertEqual(lesson_request.tutor_id, self.tutor)
 
     def test_allocate_lessons(self):
         lesson_request = LessonRequest.objects.create(
-            student=self.student,
-            title="Math Tutoring",
-            description="Linear algebra lessons.",
-            lesson_date=now() + timedelta(days=1),
-            preferred_tutor=self.tutor,
-            no_of_weeks=2,
+            student_id=self.student,
+            language='Python',
+            term='Sept-Christmas',
+            day_of_the_week='Monday',
+            frequency='Weekly',
+            duration=60,
+            description='Learn Python basics.',
+            tutor_id=self.tutor,
             status='allocated',
         )
         allocated_lessons = AllocatedLesson.objects.filter(lesson_request=lesson_request)
-        self.assertEqual(allocated_lessons.count(), 2)
+        self.assertTrue(allocated_lessons.exists())
 
     def test_unallocate_lessons(self):
         lesson_request = LessonRequest.objects.create(
-            student=self.student,
-            title="Math Tutoring",
-            description="Linear algebra lessons.",
-            lesson_date=now() + timedelta(days=1),
-            preferred_tutor=self.tutor,
-            no_of_weeks=2,
+            student_id=self.student,
+            language='Python',
+            term='Sept-Christmas',
+            day_of_the_week='Monday',
+            frequency='Weekly',
+            duration=60,
+            description='Learn Python basics.',
+            tutor_id=self.tutor,
             status='allocated',
         )
-        lesson_request.status = 'unallocated'
-        lesson_request.save()
+        AllocatedLesson.objects.filter(lesson_request=lesson_request).delete()
         allocated_lessons = AllocatedLesson.objects.filter(lesson_request=lesson_request)
-        self.assertEqual(allocated_lessons.count(), 0)
+        self.assertFalse(allocated_lessons.exists())

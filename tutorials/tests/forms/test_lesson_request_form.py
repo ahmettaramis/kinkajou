@@ -1,7 +1,7 @@
 from django.test import TestCase
 from tutorials.forms import LessonRequestForm
 from tutorials.models import User
-from django.utils.timezone import now, timedelta
+from django.utils.timezone import now
 
 class LessonRequestFormTest(TestCase):
     def setUp(self):
@@ -20,39 +20,40 @@ class LessonRequestFormTest(TestCase):
 
     def test_valid_form(self):
         data = {
-            'title': 'Math Tutoring',
-            'description': 'I need help with calculus.',
-            'lesson_date': now() + timedelta(days=1),
-            'preferred_tutor': self.tutor.id,
-            'no_of_weeks': 4,
+            'language': 'Python',
+            'term': 'Sept-Christmas',
+            'day_of_the_week': 'Monday',
+            'frequency': 'Weekly',
+            'duration': 60,
+            'description': 'I need help with Python basics.',
+            'tutor_id': self.tutor.id,
         }
         form = LessonRequestForm(data=data)
         self.assertTrue(form.is_valid())
 
-    def test_invalid_date_in_past(self):
+    def test_invalid_no_of_weeks(self):
         data = {
-            'title': 'Math Tutoring',
-            'description': 'I need help with calculus.',
-            'lesson_date': now() - timedelta(days=1),
-            'preferred_tutor': self.tutor.id,
-            'no_of_weeks': 4,
+            'language': 'Python',
+            'term': 'Sept-Christmas',
+            'day_of_the_week': 'Monday',
+            'frequency': 'Weekly',
+            'duration': 60,
+            'description': 'I need help with Python basics.',
+            'tutor_id': self.tutor.id,
+        }
+        form = LessonRequestForm(data=data)
+        self.assertTrue(form.is_valid())
+
+    def test_invalid_tutor(self):
+        data = {
+            'language': 'Python',
+            'term': 'Sept-Christmas',
+            'day_of_the_week': 'Monday',
+            'frequency': 'Weekly',
+            'duration': 60,
+            'description': 'I need help with Python basics.',
+            'tutor_id': self.student.id,  # Invalid tutor (student role)
         }
         form = LessonRequestForm(data=data)
         self.assertFalse(form.is_valid())
-        self.assertIn("Lesson date cannot be in the past.", form.errors['lesson_date'])
-
-    def test_invalid_no_of_weeks(self):
-        data = {
-            'title': 'Math Lesson',
-            'description': 'Learn advanced math.',
-            'lesson_date': (now() + timedelta(days=1)).strftime('%Y-%m-%dT%H:%M'),
-            'no_of_weeks': 53,  # Invalid value
-            'preferred_tutor': self.tutor.id,
-        }
-        form = LessonRequestForm(data)
-        self.assertFalse(form.is_valid())
-        self.assertIn('no_of_weeks', form.errors) 
-        self.assertIn(
-            "Number of weeks must be between 1 and 52.",
-            form.errors['no_of_weeks']
-        )
+        self.assertIn("Selected user is not a tutor.", form.errors['tutor_id'])

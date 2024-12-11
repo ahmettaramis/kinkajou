@@ -1,7 +1,7 @@
 from django.test import TestCase, Client
 from django.urls import reverse
 from tutorials.models import LessonRequest, User
-from django.utils.timezone import now, timedelta
+from django.utils.timezone import now
 
 class LessonRequestViewTest(TestCase):
     def setUp(self):
@@ -39,18 +39,20 @@ class LessonRequestViewTest(TestCase):
 
     def test_update_request_status(self):
         lesson_request = LessonRequest.objects.create(
-            student=self.student,
-            title="Physics Tutoring",
-            description="Mechanics focus.",
-            lesson_date=now() + timedelta(days=3),
-            status='unallocated',
-            no_of_weeks=2,
+            student_id=self.student,
+            language='Python',
+            term='Sept-Christmas',
+            day_of_the_week='Monday',
+            frequency='Weekly',
+            duration=60,
+            description='Learn Python basics.',
+            status='Pending',
         )
         self.client.login(username='admin1', password='password')
         response = self.client.post(reverse('update_request_status', args=[lesson_request.id]), {
             'status': 'allocated',
-            'preferred_tutor': self.tutor.id,
+            'tutor_id': self.tutor.id,
         })
         lesson_request.refresh_from_db()
         self.assertEqual(lesson_request.status, 'allocated')
-        self.assertEqual(lesson_request.preferred_tutor, self.tutor)
+        self.assertEqual(lesson_request.tutor_id, self.tutor)

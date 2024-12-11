@@ -366,6 +366,7 @@ def cancel_lesson(request, lesson_id):
 
         # Redirect back to the student dashboard
         return redirect('dashboard')
+
 class TutorListView(ListView):
     """View to display all tutors."""
 
@@ -408,8 +409,6 @@ class TutorListView(ListView):
         context['subjects'] = Tutor.TOPICS  # Pass subjects to the template
         context['days'] = Schedule.DAYS_OF_WEEK  # Pass days to the template
         return context
-
-
 
 
 class TutorAvailabilityUpdateView(LoginRequiredMixin, TemplateView):
