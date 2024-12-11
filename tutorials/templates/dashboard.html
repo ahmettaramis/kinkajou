@@ -44,6 +44,12 @@
                       </td>
                       <td>{{ lesson.date|date:"Y-m-d" }}</td>
                       <td>{{ lesson.time|time:"H:i" }}</td>
+                        <td>
+                            <form method="post" action="{% url 'cancel_lesson' lesson.id %}" style="display:inline;">
+                              {% csrf_token %}
+                              <button type="submit" class="btn btn-danger btn-sm">Cancel</button>
+                            </form>
+                        </td>
                     </tr>
                   {% endfor %}
                 </tbody>

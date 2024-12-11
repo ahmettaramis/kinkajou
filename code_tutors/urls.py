@@ -37,5 +37,6 @@ urlpatterns = [
     # Admin views
     path('lesson_requests/admin/', views.admin_view_requests, name='admin_view_requests'),
     path('lesson_requests/<int:pk>/update-status/', views.update_request_status, name='update_request_status'),
+    path('cancel_lesson/<int:lesson_id>/', views.cancel_lesson, name='cancel_lesson'),
 ]
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

@@ -316,6 +316,18 @@ def get_term_date_range(term, date_created):
 
     return lower_date, upper_date
 
+
+@login_required
+def cancel_lesson(request, lesson_id):
+    if request.method == 'POST':
+        # Get the lesson or return a 404 if not found
+        lesson = get_object_or_404(AllocatedLesson, id=lesson_id, lesson_request__student_id=request.user)
+
+        # Delete the lesson
+        lesson.delete()
+
+        # Redirect back to the student dashboard
+        return redirect('dashboard')
 class TutorListView(ListView):
     """View to display all tutors."""
     
