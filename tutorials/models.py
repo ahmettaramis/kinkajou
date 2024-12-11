@@ -1,3 +1,6 @@
+from datetime import datetime
+from django.utils.timezone import make_aware
+
 from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import AbstractUser
@@ -197,13 +200,24 @@ class LessonRequest(models.Model):
     frequency = models.CharField(max_length=10, choices=FREQUENCY_CHOICES)
     duration = models.IntegerField(choices=DURATION_CHOICES)
     description = models.TextField(blank=True)
-    status = models.CharField(max_length=20, default='Pending')
+    status = models.CharField(max_length=20, default='Unallocated')
     date_created = models.DateTimeField(default=now)
 
     def __str__(self):
         return f"Request by {self.student_id} for {self.language}"
 
 class AllocatedLesson(models.Model):
+    LANGUAGE_CHOICES = [
+        ('Python', 'Python'),
+        ('Java', 'Java'),
+        ('C++', 'C++'),
+        ('Scala', 'Scala'),
+        ('R', 'R'),
+        ('Javascript', 'Javascript'),
+        ('Swift', 'Swift'),
+        ('Go', 'Go'),
+    ]
+
     lesson_request = models.ForeignKey(
         'LessonRequest',
         on_delete=models.CASCADE,
@@ -212,7 +226,7 @@ class AllocatedLesson(models.Model):
     occurrence = models.PositiveIntegerField()
     date = models.DateField()
     time = models.TimeField()
-    language = models.CharField(max_length=100)
+    language = models.CharField(choices=LANGUAGE_CHOICES, max_length=100)
     student_id = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -236,7 +250,8 @@ class AllocatedLesson(models.Model):
         """
         Ensures that the allocated lesson's date is within the lesson request's constraints.
         """
-        if self.date < now():
+        lesson_datetime = make_aware(datetime.combine(self.date, self.time))
+        if lesson_datetime < now():
             raise ValidationError("Allocated lesson date cannot be in the past.")
         super().clean()
 
