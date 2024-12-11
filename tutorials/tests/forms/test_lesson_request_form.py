@@ -1,7 +1,7 @@
 from django.test import TestCase
 from tutorials.forms import LessonRequestForm
-from tutorials.models import User
-from django.utils.timezone import now
+from tutorials.models import User, LessonRequest
+from django.utils.timezone import now, timedelta
 
 class LessonRequestFormTest(TestCase):
     def setUp(self):
@@ -25,35 +25,39 @@ class LessonRequestFormTest(TestCase):
             'day_of_the_week': 'Monday',
             'frequency': 'Weekly',
             'duration': 60,
-            'description': 'I need help with Python basics.',
+            'description': 'Looking for help with Python basics.',
             'tutor_id': self.tutor.id,
         }
         form = LessonRequestForm(data=data)
         self.assertTrue(form.is_valid())
 
-    def test_invalid_no_of_weeks(self):
+    def test_invalid_no_tutor_role(self):
+        invalid_user = User.objects.create_user(
+            username='user1',
+            password='password',
+            role='student',
+            email='user1@example.com'
+        )
         data = {
             'language': 'Python',
-            'term': 'Sept-Christmas',
-            'day_of_the_week': 'Monday',
+            'term': 'Jan-Easter',
+            'day_of_the_week': 'Tuesday',
             'frequency': 'Weekly',
             'duration': 60,
-            'description': 'I need help with Python basics.',
-            'tutor_id': self.tutor.id,
-        }
-        form = LessonRequestForm(data=data)
-        self.assertTrue(form.is_valid())
-
-    def test_invalid_tutor(self):
-        data = {
-            'language': 'Python',
-            'term': 'Sept-Christmas',
-            'day_of_the_week': 'Monday',
-            'frequency': 'Weekly',
-            'duration': 60,
-            'description': 'I need help with Python basics.',
-            'tutor_id': self.student.id,  # Invalid tutor (student role)
+            'tutor_id': invalid_user.id,
         }
         form = LessonRequestForm(data=data)
         self.assertFalse(form.is_valid())
-        self.assertIn("Selected user is not a tutor.", form.errors['tutor_id'])
+        self.assertIn("Select a valid choice. That choice is not one of the available choices.", form.errors['tutor_id'])
+
+    def test_invalid_duration(self):
+        data = {
+            'language': 'Python',
+            'term': 'March-June',
+            'day_of_the_week': 'Friday',
+            'frequency': 'Weekly',
+            'duration': 90,  # Invalid duration
+        }
+        form = LessonRequestForm(data=data)
+        self.assertFalse(form.is_valid())
+        self.assertIn("Select a valid choice. 90 is not one of the available choices.", form.errors['duration'])

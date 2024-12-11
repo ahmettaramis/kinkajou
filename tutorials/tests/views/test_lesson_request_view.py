@@ -1,7 +1,7 @@
 from django.test import TestCase, Client
 from django.urls import reverse
-from tutorials.models import LessonRequest, User
-from django.utils.timezone import now
+from tutorials.models import LessonRequest, User, AllocatedLesson
+from django.utils.timezone import now, timedelta
 
 class LessonRequestViewTest(TestCase):
     def setUp(self):
@@ -40,19 +40,21 @@ class LessonRequestViewTest(TestCase):
     def test_update_request_status(self):
         lesson_request = LessonRequest.objects.create(
             student_id=self.student,
-            language='Python',
-            term='Sept-Christmas',
-            day_of_the_week='Monday',
-            frequency='Weekly',
+            language="Python",
+            term="Sept-Christmas",
+            day_of_the_week="Monday",
+            frequency="Weekly",
             duration=60,
-            description='Learn Python basics.',
-            status='Pending',
+            status="unallocated",
         )
-        self.client.login(username='admin1', password='password')
-        response = self.client.post(reverse('update_request_status', args=[lesson_request.id]), {
-            'status': 'allocated',
-            'tutor_id': self.tutor.id,
-        })
+        self.client.login(username="admin1", password="password")
+        response = self.client.post(
+            reverse("update_request_status", args=[lesson_request.id]),
+            {
+                "status": "allocated",
+                "lesson_requests_as_tutor": self.tutor.id,
+            },
+        )
         lesson_request.refresh_from_db()
-        self.assertEqual(lesson_request.status, 'allocated')
+        self.assertEqual(lesson_request.status, "allocated")
         self.assertEqual(lesson_request.tutor_id, self.tutor)

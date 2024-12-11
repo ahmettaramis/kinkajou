@@ -257,7 +257,8 @@ def update_request_status(request, pk):
             # Assign the tutor if provided
             if selected_tutor_id:
                 tutor = User.objects.get(id=selected_tutor_id)
-                lesson_request.tutor = tutor  # Correctly assign tutor as a ForeignKey object
+                lesson_request.tutor_id = tutor 
+                messages.success(request, f"Tutor {tutor.username} assigned successfully.")
 
             # Update the status
             lesson_request.status = new_status
