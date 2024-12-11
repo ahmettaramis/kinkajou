@@ -82,3 +82,40 @@ class LessonRequestModelTest(TestCase):
         AllocatedLesson.objects.filter(lesson_request=lesson_request).delete()  # Explicitly delete the allocated lessons
         allocated_lessons = AllocatedLesson.objects.filter(lesson_request=lesson_request)
         self.assertEqual(allocated_lessons.count(), 0)
+
+    def test_create_lesson_request(self):
+        lesson_request = LessonRequest.objects.create(
+            student_id=self.student,
+            language="Python",
+            term="Sept-Christmas",
+            day_of_the_week="Monday",
+            frequency="Weekly",
+            duration=60,
+            description="Learn Python basics."
+        )
+        self.assertEqual(lesson_request.language, "Python")
+
+    def test_lesson_request_auto_status(self):
+        lesson_request = LessonRequest.objects.create(
+            student_id=self.student,
+            language="Python",
+            term="Sept-Christmas",
+            day_of_the_week="Monday",
+            frequency="Weekly",
+            duration=60,
+            description="Learn Python basics."
+        )
+        self.assertEqual(lesson_request.status, "Pending")  # Default status
+
+    def test_tutor_assignment(self):
+        lesson_request = LessonRequest.objects.create(
+            student_id=self.student,
+            language="Python",
+            term="Sept-Christmas",
+            day_of_the_week="Monday",
+            frequency="Weekly",
+            duration=60,
+            description="Learn Python basics.",
+            tutor_id=self.tutor,
+        )
+        self.assertEqual(lesson_request.tutor_id, self.tutor)

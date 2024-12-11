@@ -58,3 +58,52 @@ class LessonRequestViewTest(TestCase):
         lesson_request.refresh_from_db()
         self.assertEqual(lesson_request.status, "allocated")
         self.assertEqual(lesson_request.tutor_id, self.tutor)
+
+    def test_student_view_requests(self):
+        self.client.login(username='student1', password='password')
+        response = self.client.get(reverse('student_view_requests'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'lesson_requests/student_view_requests.html')
+
+    def test_tutor_access_student_page(self):
+        self.client.login(username='tutor1', password='password')
+        response = self.client.get(reverse('student_view_requests'))
+        self.assertEqual(response.status_code, 403)  # Tutor should also receive a 403 Forbidden response
+
+    def test_admin_access_student_page(self):
+        self.client.login(username='admin1', password='password')
+        response = self.client.get(reverse('student_view_requests'))
+        self.assertEqual(response.status_code, 403)  # Admin should not access student page
+
+    def test_student_create_lesson_request(self):
+        self.client.login(username='student1', password='password')
+        data = {
+            'language': 'Python',
+            'term': 'Sept-Christmas',
+            'day_of_the_week': 'Monday',
+            'frequency': 'Weekly',
+            'duration': 60,
+            'description': 'Learn Python basics.',
+            'tutor_id': self.tutor.id,
+        }
+        response = self.client.post(reverse('create_lesson_request'), data)
+        self.assertEqual(response.status_code, 302)  # Should redirect after creation
+        self.assertTrue(LessonRequest.objects.filter(student_id=self.student).exists())
+
+    def test_admin_update_request_status_without_tutor(self):
+        lesson_request = LessonRequest.objects.create(
+            student_id=self.student,
+            language="Python",
+            term="Sept-Christmas",
+            day_of_the_week="Monday",
+            frequency="Weekly",
+            duration=60,
+            description="Learn Python basics.",
+        )
+        self.client.login(username='admin1', password='password')
+        response = self.client.post(reverse('update_request_status', args=[lesson_request.id]), {
+            'status': 'allocated',
+        })
+        self.assertEqual(response.status_code, 200)  # Should show error and not redirect
+        lesson_request.refresh_from_db()
+        self.assertEqual(lesson_request.status, 'Pending')
