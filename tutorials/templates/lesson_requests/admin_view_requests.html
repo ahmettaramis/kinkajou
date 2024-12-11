@@ -1,24 +1,39 @@
 {% extends "base_content.html" %}
 
 {% block content %}
-<div class="container">
-    <div class="row">
-        <div class="col-12">
-            <h2>All Lesson Requests</h2>
-            <form method="get" class="mb-3">
-                <label for="status">Filter by status:</label>
-                <select name="status" id="status" class="form-control w-25 d-inline-block">
-                    <option value="">All</option>
-                    <option value="Pending" {% if request.GET.status == "Pending" %}selected{% endif %}>Pending</option>
-                    <option value="Approved" {% if request.GET.status == "Approved" %}selected{% endif %}>Approved</option>
-                    <option value="Rejected" {% if request.GET.status == "Rejected" %}selected{% endif %}>Rejected</option>
-                </select>
-                <button type="submit" class="btn btn-primary ml-2">Filter</button>
-            </form>
-            
-            {% if requests %}
-            <table class="table table-striped">
-                <thead>
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <h2>All Lesson Requests</h2>
+                <form method="get">
+                    <label for="filter">Filter:</label>
+                    <select name="filter" id="filter" class="form-control">
+                        <option value="" {% if filter == "" %}selected{% endif %}>
+                            All
+                        </option>
+                        <option value="allocated" {% if filter == "allocated" %}selected{% endif %}>
+                            Allocated
+                        </option>
+                        <option value="unallocated" {% if filter == "unallocated" %}selected{% endif %}>
+                            Unallocated
+                        </option>
+                        <option value="paid" {% if filter == "paid" %}selected{% endif %}>
+                            Paid
+                        </option>
+                        <option value="unpaid" {% if filter == "unpaid" %}selected{% endif %}>
+                            Not Paid
+                        </option>
+                        <option value="invoice_generated" {% if filter == "invoice_generated" %}selected{% endif %}>
+                            Invoice Generated
+                        </option>
+                        <option value="no_invoice_generated" {% if filter == "no_invoice_generated" %}selected{% endif %}>
+                            No Invoice Generated
+                        </option>
+                    </select>
+                    <button type="submit" class="btn btn-primary">Filter</button>
+                </form>
+                
+                <table class="table">
                     <tr>
                         <th>Language</th>
                         <th>Status</th>
@@ -52,6 +67,12 @@
                         <td>{{ request.date_created|date:"Y-m-d H:i" }}</td>
                         <td>
                             <a href="{% url 'update_request_status' request.id %}" class="btn btn-warning btn-sm">Update Status</a>
+                            <a href="{% url 'generate_invoice' request.id %}" class="btn btn-warning">Generate Invoice</a>
+                            {% for invoice in invoices %}
+                            {% if invoice.lesson_request == request %}
+                            <a href="{% url 'toggle_invoice_paid' invoice.id %}" class="btn btn-primary">{% if invoice.is_paid %} Unmark as paid {% else %} Mark as paid {% endif %}</a>
+                            {% endif %}
+                            {% endfor %}    
                         </td>
                     </tr>
                     {% endfor %}

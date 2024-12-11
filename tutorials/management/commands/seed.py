@@ -11,6 +11,7 @@ user_fixtures = [
     {'username': '@janedoe', 'email': 'jane.doe@example.org', 'first_name': 'Jane', 'last_name': 'Doe', 'role': 'tutor'},
     {'username': '@charlie', 'email': 'charlie.johnson@example.org', 'first_name': 'Charlie', 'last_name': 'Johnson', 'role': 'student'},
 ]
+seed_groups = ['Students', 'Tutors']
 
 
 class Command(BaseCommand):
@@ -19,6 +20,7 @@ class Command(BaseCommand):
     TUTOR_COUNT = USER_COUNT - STUDENT_COUNT
 
     DEFAULT_PASSWORD = 'Password123'
+    user_groups = ['Admins', 'Students', 'Tutors']
     help = 'Seeds the database with sample data'
 
     def __init__(self):
@@ -40,8 +42,15 @@ class Command(BaseCommand):
                 Tutor.objects.create(user=user, subjects=choice(Tutor.TOPICS)[0])
             elif data['role'] == 'student':
                 Student.objects.create(user=user)
+                student = Student.objects.create(user=user)
+                #charlie gets janedoe as tutor
+                if data['username'] == '@charlie':
+                    tutor = Tutor.objects.filter(user__username='@janedoe').first()
+                    if tutor:
+                        student.tutor = tutor
+                        student.save()
+        
         create_manual_lesson_request()
-
 
     def create_tutors(self):
         for i in range(self.TUTOR_COUNT):

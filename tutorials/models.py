@@ -5,6 +5,8 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.timezone import now, timedelta
 
+from django.core.validators import MinValueValidator
+from decimal import Decimal
 from libgravatar import Gravatar
 
 from code_tutors import settings
@@ -79,7 +81,7 @@ class Tutor(models.Model):
     subjects = models.CharField(max_length=50, choices=TOPICS, blank=True, null=True)
 
     def __str__(self):
-        return f'{self.user.username} - {self.expertise}'
+        return f'{self.user.username} - {self.subjects}'
 
 class Student(models.Model):
     """Model for students, extending User"""
@@ -102,13 +104,47 @@ class Schedule(models.Model):
         ('Sunday', 'Sunday'),
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='schedules')  # For both students and tutors
+    user = models.ForeignKey(User,
+                            on_delete=models.CASCADE,
+                            related_name='schedules',
+                            null=False,
+                            blank=False)
+    
     day_of_week = models.CharField(max_length=10, choices=DAYS_OF_WEEK)
     start_time = models.TimeField()
     end_time = models.TimeField()
 
     def __str__(self):
         return f"{self.user.username}: {self.day_of_week} {self.start_time}-{self.end_time}"
+    
+    def clean(self):
+        if self.start_time > self.end_time:
+            raise ValidationError("Start time cannot be after end time.")
+    
+    def save(self, *args, **kwargs):
+        # Filter for overlapping schedules for the same user and same day
+        overlapping_schedules = Schedule.objects.filter(
+            user=self.user,  # Restrict to the same user
+            day_of_week=self.day_of_week  # Restrict to the same day
+        ).exclude(id=self.id)  # Exclude the current instance
+
+        # Find overlaps
+        overlapping_schedules = [
+            schedule for schedule in overlapping_schedules
+            if schedule.start_time <= self.end_time and schedule.end_time >= self.start_time
+        ]
+
+        if overlapping_schedules:
+            # Adjust the start and end time to encompass all overlaps
+            for schedule in overlapping_schedules:
+                self.start_time = min(self.start_time, schedule.start_time)
+                self.end_time = max(self.end_time, schedule.end_time)
+                # Delete the overlapping schedules
+                schedule.delete()
+
+        #save new shcedule
+        super().save(*args, **kwargs)
+
 
 
 User = get_user_model()
@@ -203,3 +239,10 @@ class AllocatedLesson(models.Model):
         if self.date < now():
             raise ValidationError("Allocated lesson date cannot be in the past.")
         super().clean()
+
+class Invoice(models.Model):
+
+    lesson_request = models.ForeignKey(LessonRequest, on_delete=models.CASCADE, related_name='invoice', null=True, blank=True)
+    amount = models.DecimalField(max_digits=6, decimal_places=2, default=0, validators=[MinValueValidator(Decimal('0.01'))])
+    is_paid = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)

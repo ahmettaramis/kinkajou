@@ -8,6 +8,7 @@
           <h2>Admin Dashboard</h2>
           <div class="mt-3">
               <a href="{% url 'admin_view_requests' %}" class="btn btn-primary">View All Submitted Requests</a>
+              <a href="{% url 'tutor_list_view' %}" class="btn btn-primary">View Tutor List</a>
           </div>
           
       {% elif user.role == 'tutor' %}
@@ -17,8 +18,22 @@
       
       {% elif user.role == 'student' %}
         <h2>Student Dashboard</h2>
+        {% if invoice_actions_needed > 0 %}
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+          You have {{ invoice_actions_needed }} unpaid invoices.
+        </div>
+        {% endif %}
         <div class="mt-3">
           <a href="{% url 'create_lesson_request' %}" class="btn btn-primary">Submit Lesson Request</a>
+          <a href="{% url 'student_view_invoices' %}" class="btn btn-primary">
+            View your invoices
+            {% if invoice_actions_needed > 0 %}
+            <span class="badge rounded-pill bg-danger">
+              {{ invoice_actions_needed }}
+              <span class="visually-hidden">action needed</span>
+            </span>
+            {% endif %}
+          </a>
           <a href="{% url 'student_view_requests' %}" class="btn btn-secondary">View Your Requests</a>
         </div>
         <div class="mt-5">

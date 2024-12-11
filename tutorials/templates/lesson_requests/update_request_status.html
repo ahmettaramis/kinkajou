@@ -59,13 +59,29 @@
             </select>
         </div>
 
-        <!-- Start Time Input -->
         <div class="mb-3">
             <label for="start_time" class="form-label">Start Time</label>
             <input type="time" name="start_time" id="start_time" class="form-control" value="{{ lesson_request.start_time|default:'' }}">
         </div>
 
-        <!-- Submit and Cancel Buttons -->
+        <div class="mb-3">
+            <label for="invoice" class="form-label">Generate Invoice</label>
+            {% if not invoice %}
+            <div>
+                <label for="invoice_amount">Amount (£):</label>
+                <input type="number" step="0.01" name="invoice_amount" id="invoice_amount" required>
+            </div>
+            {% else %}
+            <div>
+                <label for="invoice_amount">Amount (£): {{ invoice.amount }}</label>
+            </div>
+            {% endif %}
+            <div>
+                <label for="invoice_is_paid">Paid?</label>
+                <input type="checkbox" name="invoice_is_paid" id="invoice_is_paid" {% if invoice and invoice.is_paid %}checked{% endif %}>
+            </div>
+        </div>
+
         <button type="submit" class="btn btn-primary">Update</button>
         <a href="{% url 'admin_view_requests' %}" class="btn btn-secondary">Cancel</a>
     </form>

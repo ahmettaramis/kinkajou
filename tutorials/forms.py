@@ -3,7 +3,7 @@ from django import forms
 from django.contrib.auth import authenticate
 from django.contrib.auth import get_user_model
 from django.core.validators import RegexValidator
-from .models import User, LessonRequest
+from .models import User, Invoice, LessonRequest
 from django.utils.timezone import now
 from django.core.exceptions import ValidationError
 from .models import User, Schedule
@@ -32,7 +32,7 @@ class UserForm(forms.ModelForm):
         """Form options."""
 
         model = User
-        fields = ['first_name', 'last_name', 'username', 'email']
+        fields = ['first_name', 'last_name', 'username', 'email', 'role']
 
 class NewPasswordMixin(forms.Form):
     """Form mixing for new_password and password_confirmation fields."""
@@ -185,3 +185,12 @@ class ScheduleForm(forms.ModelForm):
             self.add_error('start_time', 'Start Time cannot be before End Time')
 
         return cleaned_data
+
+class InvoiceForm(forms.ModelForm):
+    class Meta:
+        model = Invoice
+        fields = ['lesson_request', 'is_paid', 'amount']
+        widgets = {
+            'lesson_request': forms.HiddenInput(),
+            'is_paid': forms.CheckboxInput(),
+        }
