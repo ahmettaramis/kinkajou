@@ -6,6 +6,7 @@
 
             <h1>Available Tutors</h1>
 
+            <!-- Search Form -->
             <form method="GET" action="{% url 'tutor_list_view' %}">
                 <label for="subjects">Subject:</label>
                 <select id="subjects" name="subjects" class="form-select">
@@ -26,6 +27,7 @@
                 <button type="submit" class="btn btn-primary mt-3">Search</button>
             </form>
 
+            <!-- Tutor Table -->
             <h2 class="mt-5">Tutors</h2>
             <table class="table table-striped">
                 <thead>
@@ -33,28 +35,47 @@
                         <th scope="col">Tutor Name</th>
                         <th scope="col">Subject</th>
                         <th scope="col">Availability</th>
+                        <th scope="col">Allocated Lessons</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for tutor in tutors %}
                     <tr>
+                        <!-- Tutor Name -->
                         <td>{{ tutor.user.first_name }} {{ tutor.user.last_name }}</td>
+                        
+                        <!-- Subject -->
                         <td>{{ tutor.get_subjects_display }}</td>
+                        
+                        <!-- Availability -->
                         <td>
                             {% if tutor.availability %}
                                 <ul class="list-unstyled">
-                                    {% for slot in tutor.availability %}
-                                    <li>{{ slot.day_of_week }}: {{ slot.start_time|time:"H:i" }} - {{ slot.end_time|time:"H:i" }}</li>
+                                    {% for schedule in tutor.availability %}
+                                    <li>{{ schedule.day_of_week }}: {{ schedule.start_time|time:"H:i" }} - {{ schedule.end_time|time:"H:i" }}</li>
                                     {% endfor %}
                                 </ul>
                             {% else %}
                                 Not specified
                             {% endif %}
                         </td>
+                        
+                        <!-- Allocated Lessons -->
+                        <td>
+                            {% if tutor.user.allocated_lessons %}
+                                <ul class="list-unstyled">
+                                    {% for lesson in tutor.user.allocated_lessons %}
+                                    <li>{{ lesson.date|date:"D, M j" }} - {{ lesson.time|time:"H:i" }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                No lessons allocated.
+                            {% endif %}
+                        </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="3" class="text-center">No tutors found matching your criteria.</td>
+                        <td colspan="4" class="text-center">No tutors found matching your criteria.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
