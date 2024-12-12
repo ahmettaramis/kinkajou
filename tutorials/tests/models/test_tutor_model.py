@@ -24,6 +24,9 @@ class TutorModelTestCase(TestCase):
         self.tutor.subjects = ""
         self._assert_tutor_is_valid()
 
+    def test_tutor_str(self):
+        self.assertEqual(str(self.tutor), f'{self.user.username} - C++')
+
     def _assert_tutor_is_valid(self):
         try:
             self.tutor.full_clean()

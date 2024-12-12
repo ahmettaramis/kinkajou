@@ -90,6 +90,11 @@ class ScheduleModelTestCase(TestCase):
         self.assertEqual(other_schedules.first().start_time, time(11, 0))
         self.assertEqual(other_schedules.first().end_time, time(13, 0))
 
+    def test_schedule_str(self):
+        """Test the string representation of the Schedule model."""
+        expected_str = f"{self.user.username}: Monday {self.schedule.start_time}-{self.schedule.end_time}"
+        self.assertEqual(str(self.schedule), expected_str)
+        
     def _assert_schedule_is_valid(self):
         """Helper method to check if a schedule instance is valid."""
         try:

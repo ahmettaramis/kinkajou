@@ -33,6 +33,9 @@ class StudentModelTestCase(TestCase):
             # Attempt to assign a User instance instead of a Tutor instance
             self.student.tutor = self.student_user
 
+    def test_student_str(self):
+        self.assertEqual(str(self.student), f"{self.student_user.username}")
+
     def _assert_student_is_valid(self):
         """Helper method to check if a student instance is valid."""
         try:
