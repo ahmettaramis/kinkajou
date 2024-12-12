@@ -464,25 +464,6 @@ class TutorListView(ListView):
         return context
 
 
-    def get_context_data(self, **kwargs):
-        """Provide context for populating dropdowns and availability."""
-        context = super().get_context_data(**kwargs)
-        context['subjects'] = Tutor.TOPICS  # Pass subjects to the template
-        context['days'] = Schedule.DAYS_OF_WEEK  # Pass days to the template
-
-        # Add availability with sorting
-        tutors = context['tutors']
-        for tutor in tutors:
-            schedules = Schedule.objects.filter(user=tutor.user)
-            sorted_schedules = sorted(
-                schedules,
-                key=lambda s: (self.day_order.get(s.day_of_week, 8), s.start_time)
-            )
-            tutor.availability = sorted_schedules  # Attach sorted schedules to the tutor
-
-        context['form'] = ScheduleForm  # Add the Schedule form to the context
-        return context
-
 
 
 class TutorAvailabilityUpdateView(LoginRequiredMixin, TemplateView):
