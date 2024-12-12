@@ -107,3 +107,33 @@ class LessonRequestViewTest(TestCase):
         self.assertEqual(response.status_code, 200)
         lesson_request.refresh_from_db()
         self.assertEqual(lesson_request.status, 'Unallocated')
+
+    def test_student_view_unauthenticated(self):
+        """Ensure unauthenticated users cannot access student view."""
+        response = self.client.get(reverse('student_view_requests'))
+        self.assertEqual(response.status_code, 302)  # Should redirect to login
+
+    def test_admin_view_unauthenticated(self):
+        """Ensure unauthenticated users cannot access admin view."""
+        response = self.client.get(reverse('admin_view_requests'))
+        self.assertEqual(response.status_code, 302)  # Should redirect to login
+
+    def test_create_request_invalid_data(self):
+        """Ensure invalid data does not create a lesson request."""
+        self.client.login(username='student1', password='password')
+        data = {
+            'language': 'InvalidLang',
+            'term': 'InvalidTerm',
+            'day_of_the_week': 'InvalidDay',
+            'frequency': 'InvalidFreq',
+            'duration': 90,  # Invalid duration
+        }
+        response = self.client.post(reverse('create_lesson_request'), data)
+        self.assertEqual(response.status_code, 200)  # Should remain on the form page
+        self.assertFalse(LessonRequest.objects.filter(student_id=self.student).exists())
+
+    def test_tutor_cannot_access_admin_view(self):
+        """Ensure tutors cannot access admin-specific views."""
+        self.client.login(username='tutor1', password='password')
+        response = self.client.get(reverse('admin_view_requests'))
+        self.assertEqual(response.status_code, 403)  # Forbidden

@@ -100,3 +100,31 @@ class LessonRequestFormTest(TestCase):
         }
         form = LessonRequestForm(data=data)
         self.assertTrue(form.is_valid())
+
+    def test_form_with_empty_data(self):
+        """Ensure form validation fails with empty data."""
+        form = LessonRequestForm(data={})
+        self.assertFalse(form.is_valid())
+
+    def test_form_with_partial_data(self):
+        """Ensure form validation fails with partial data."""
+        data = {
+            'language': 'Python',
+            'term': 'Sept-Christmas',
+        }
+        form = LessonRequestForm(data=data)
+        self.assertFalse(form.is_valid())
+
+    def test_form_tutor_not_selected(self):
+        """Ensure form works without selecting a tutor."""
+        data = {
+            'language': 'Python',
+            'term': 'Jan-Easter',
+            'day_of_the_week': 'Tuesday',
+            'frequency': 'Weekly',
+            'duration': 60,
+            'description': 'Optional description',
+        }
+        form = LessonRequestForm(data=data)
+        self.assertTrue(form.is_valid())
+        self.assertIsNone(form.cleaned_data.get('tutor_id'))

@@ -464,8 +464,6 @@ class TutorListView(ListView):
         return context
 
 
-
-
 class TutorAvailabilityUpdateView(LoginRequiredMixin, TemplateView):
     template_name = 'update_schedule.html'
 
