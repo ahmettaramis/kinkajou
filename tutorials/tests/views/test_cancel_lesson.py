@@ -26,7 +26,7 @@ class CancelLessonTestCase(TestCase):
 
     def test_cancel_lesson_redirects_if_not_logged_in(self):
         response = self.client.post(self.url)
-        self.assertEqual(response.status_code, 302)  # Redirect to login page
+        self.assertEqual(response.status_code, 302)
 
     def test_student_cannot_cancel_lesson(self):
         self.client.force_login(self.student_user)
@@ -41,7 +41,7 @@ class CancelLessonTestCase(TestCase):
         self.client.force_login(self.tutor_user)
         response = self.client.post(self.url)
 
-        self.assertEqual(response.status_code, 302)  # Redirect to dashboard
+        self.assertEqual(response.status_code, 302)
         self.assertFalse(AllocatedLesson.objects.filter(id=self.lesson.id).exists())
         messages = list(get_messages(response.wsgi_request))
         self.assertEqual(str(messages[0]), "Lesson has been cancelled successfully.")
