@@ -41,10 +41,10 @@
                         <td>{{ tutor.user.first_name }} {{ tutor.user.last_name }}</td>
                         <td>{{ tutor.get_subjects_display }}</td>
                         <td>
-                            {% if tutor.user.available_schedules %}
+                            {% if tutor.availability %}
                                 <ul class="list-unstyled">
-                                    {% for slot in tutor.user.available_schedules %}
-                                    <li>{{ slot.day_of_week }}: {{ slot.start_time }} - {{ slot.end_time }}</li>
+                                    {% for slot in tutor.availability %}
+                                    <li>{{ slot.day_of_week }}: {{ slot.start_time|time:"H:i" }} - {{ slot.end_time|time:"H:i" }}</li>
                                     {% endfor %}
                                 </ul>
                             {% else %}

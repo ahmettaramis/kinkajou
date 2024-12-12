@@ -400,10 +400,15 @@ def cancel_lesson(request, lesson_id):
 
 class TutorListView(ListView):
     """View to display all tutors."""
-
-    model = Tutor  
-    template_name = 'tutor_list.html' 
+    
+    model = Tutor
+    template_name = 'tutor_list.html'
     context_object_name = 'tutors'
+
+    day_order = {
+        "Monday": 2, "Tuesday": 3, "Wednesday": 4, "Thursday": 5,
+        "Friday": 6, "Saturday": 7, "Sunday": 1,
+    }
 
     def dispatch(self, request, *args, **kwargs):
         # Redirect to home if the user is not an admin
@@ -435,11 +440,24 @@ class TutorListView(ListView):
         return queryset.distinct()
 
     def get_context_data(self, **kwargs):
-        """Provide context for populating dropdowns."""
+        """Provide context for populating dropdowns and availability."""
         context = super().get_context_data(**kwargs)
         context['subjects'] = Tutor.TOPICS  # Pass subjects to the template
         context['days'] = Schedule.DAYS_OF_WEEK  # Pass days to the template
+
+        # Add availability with sorting
+        tutors = context['tutors']
+        for tutor in tutors:
+            schedules = Schedule.objects.filter(user=tutor.user)
+            sorted_schedules = sorted(
+                schedules,
+                key=lambda s: (self.day_order.get(s.day_of_week, 8), s.start_time)
+            )
+            tutor.availability = sorted_schedules  # Attach sorted schedules to the tutor
+
+        context['form'] = ScheduleForm  # Add the Schedule form to the context
         return context
+
 
 
 class TutorAvailabilityUpdateView(LoginRequiredMixin, TemplateView):
