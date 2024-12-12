@@ -49,27 +49,26 @@ class TutorListViewTestCase(TestCase):
         self.client.login(username='admin_user', password='password')
         response = self.client.get(reverse('tutor_list_view') + '?day=Monday')
         self.assertContains(response, 'Python')
-        self.assertContains(response, 'Monday: 9 a.m. - 11 a.m.')
+        self.assertContains(response, 'Monday: 09:00 - 11:00')
 
     def test_filter_by_subject(self):
         self.client.login(username='admin_user', password='password')
         response = self.client.get(reverse('tutor_list_view') + '?subjects=Python')
         self.assertContains(response, 'Python')
-        self.assertContains(response, 'Monday: 9 a.m. - 11 a.m.')
+        self.assertContains(response, 'Monday: 09:00 - 11:00')
 
     def test_no_filters_applied(self):
         self.client.login(username='admin_user', password='password')
         response = self.client.get(reverse('tutor_list_view') + '?subjects=any&day=any')
         self.assertContains(response, 'Python')
-        self.assertContains(response, 'Monday: 9 a.m. - 11 a.m.')
+        self.assertContains(response, 'Monday: 09:00 - 11:00')
         self.assertContains(response, 'Java')
-        self.assertContains(response, 'Tuesday: 1 p.m. - 3 p.m.')
+        self.assertContains(response, 'Tuesday: 13:00 - 15:00')
 
     def test_redirect_non_admin_user(self):
         self.client.login(username='student_user', password='password')
         response = self.client.get(reverse('tutor_list_view'), follow=True)
         self.assertRedirects(response, reverse('dashboard'), status_code=302, target_status_code=200)
-
 
     def test_access_by_admin_user(self):
         self.client.login(username='admin_user', password='password')
@@ -83,4 +82,4 @@ class TutorListViewTestCase(TestCase):
         self.client.login(username='admin_user', password='password')
         response = self.client.get(reverse('tutor_list_view') + '?subjects=Python&day=Monday')
         self.assertContains(response, 'Python')
-        self.assertContains(response, 'Monday: 9 a.m. - 11 a.m.')
+        self.assertContains(response, 'Monday: 09:00 - 11:00')
