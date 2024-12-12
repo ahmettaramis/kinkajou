@@ -52,8 +52,9 @@ class CancelLessonTestCase(TestCase):
         self.client.force_login(other_user)
         response = self.client.post(self.url)
 
-        self.assertEqual(response.status_code, 302)  # Redirect to dashboard
+        self.assertEqual(response.status_code, 302)
         self.assertTrue(AllocatedLesson.objects.filter(id=self.lesson.id).exists())
+
         messages = list(get_messages(response.wsgi_request))
         self.assertEqual(str(messages[0]), "You do not have permission to cancel this lesson.")
 
