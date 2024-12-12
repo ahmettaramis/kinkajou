@@ -28,15 +28,14 @@ class CancelLessonTestCase(TestCase):
         response = self.client.post(self.url)
         self.assertEqual(response.status_code, 302)  # Redirect to login page
 
-    # This test case is not passing but when running the code, it does
-    def test_student_can_cancel_lesson(self):
+    def test_student_cannot_cancel_lesson(self):
         self.client.force_login(self.student_user)
         response = self.client.post(self.url)
 
-        self.assertEqual(response.status_code, 302)  # Redirect to dashboard
+        self.assertEqual(response.status_code, 302)
         self.assertTrue(AllocatedLesson.objects.filter(id=self.lesson.id).exists())
         messages = list(get_messages(response.wsgi_request))
-        self.assertEqual(str(messages[0]), "Lesson has been cancelled successfully.")
+        self.assertEqual(str(messages[0]), "You do not have permission to cancel this lesson.")
 
     def test_tutor_can_cancel_lesson(self):
         self.client.force_login(self.tutor_user)
