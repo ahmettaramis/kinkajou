@@ -6,8 +6,8 @@ class TutorModelTestCase(TestCase):
     """Unit tests for the Tutor model."""
 
     def setUp(self):
-        self.user = User.objects.create_user(username="tutor_user", email="tutor@example.com", password="password")
-        self.tutor = Tutor.objects.create(user=self.user, subjects="algorithms")
+        self.user = User.objects.create_user(username="tutoruser", email="tutoruser@example.com", password="Password123")
+        self.tutor = Tutor.objects.create(user=self.user, subjects="C++")
 
     def test_valid_tutor(self):
         self._assert_tutor_is_valid()
