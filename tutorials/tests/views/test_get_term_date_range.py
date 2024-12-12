@@ -63,5 +63,29 @@ class TestGetTermDateRange(TestCase):
         self.assertEqual(lower, datetime(self.test_year, 3, 1))
         self.assertEqual(upper, datetime(self.test_year, 6, 30))
 
-if __name__ == '__main__':
-    unittest.main()
+    def test_invalid_term(self):
+        with self.assertRaises(ValueError) as context:
+            get_term_date_range('Invalid-Term', datetime(self.test_year, 1, 1))
+        self.assertEqual(str(context.exception), "Unknown term: Invalid-Term")
+
+    def test_invalid_date_created_type(self):
+        with self.assertRaises(TypeError) as context:
+            get_term_date_range('Sept-Christmas', "2024-09-01")
+        self.assertEqual(str(context.exception), "date_created must be a datetime object")
+
+        with self.assertRaises(TypeError) as context:
+            get_term_date_range('Sept-Christmas', None)
+        self.assertEqual(str(context.exception), "date_created must be a datetime object")
+
+    def test_timezone_handling(self):
+        from pytz import timezone
+        tz = timezone('GMT')
+        date_with_tz = tz.localize(datetime(self.test_year, 12, 26))
+
+        lower, upper = get_term_date_range('Sept-Christmas', date_with_tz)
+        self.assertEqual(lower, datetime(self.test_year + 1, 9, 1))  # Should remove tzinfo
+        self.assertEqual(upper, datetime(self.test_year + 1, 12, 25))
+
+        # Ensure no timezone info remains in the results
+        self.assertIsNone(lower.tzinfo)
+        self.assertIsNone(upper.tzinfo)
