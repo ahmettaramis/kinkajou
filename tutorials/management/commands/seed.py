@@ -14,8 +14,8 @@ user_fixtures = [
 
 
 class Command(BaseCommand):
-    USER_COUNT = 50
-    STUDENT_COUNT = int(USER_COUNT * 0.7)
+    USER_COUNT = 300
+    STUDENT_COUNT = int(USER_COUNT * 0.9)
     TUTOR_COUNT = USER_COUNT - STUDENT_COUNT
 
     DEFAULT_PASSWORD = 'Password123'
