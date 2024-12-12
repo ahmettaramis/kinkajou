@@ -43,7 +43,7 @@ class TutorAvailabilityUpdateViewTestCase(TestCase):
     def test_non_tutor_redirected(self):
         self.client.login(username='@charlie', password='Password123')
         response = self.client.get(self.url, follow=True)
-        self.assertRedirects(response, reverse('home'), status_code=302, target_status_code=200)
+        self.assertRedirects(response, reverse('dashboard'), status_code=302, target_status_code=200)
 
     def test_schedule_creation(self):
         self.client.login(username='@janedoe', password='Password123')
