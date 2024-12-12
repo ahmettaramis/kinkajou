@@ -1,0 +1,87 @@
+{% extends 'base_content.html' %}
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+
+            <h1>Available Tutors</h1>
+
+            <!-- Search Form -->
+            <form method="GET" action="{% url 'tutor_list_view' %}">
+                <label for="subjects">Subject:</label>
+                <select id="subjects" name="subjects" class="form-select">
+                    <option value="any" {% if request.GET.subjects == "any" or not request.GET.subjects %}selected{% endif %}>Any</option>
+                    {% for key, value in subjects %}
+                        <option value="{{ key }}" {% if request.GET.subjects == key %}selected{% endif %}>{{ value }}</option>
+                    {% endfor %}
+                </select>
+
+                <label for="day">Day:</label>
+                <select id="day" name="day" class="form-select">
+                    <option value="any" {% if request.GET.day == "any" or not request.GET.day %}selected{% endif %}>Any</option>
+                    {% for key, value in days %}
+                        <option value="{{ key }}" {% if request.GET.day == key %}selected{% endif %}>{{ value }}</option>
+                    {% endfor %}
+                </select>
+
+                <button type="submit" class="btn btn-primary mt-3">Search</button>
+            </form>
+
+            <!-- Tutor Table -->
+            <h2 class="mt-5">Tutors</h2>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th scope="col">Tutor Name</th>
+                        <th scope="col">Subject</th>
+                        <th scope="col">Availability</th>
+                        <th scope="col">Allocated Lessons</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tutor in tutors %}
+                    <tr>
+                        <!-- Tutor Name -->
+                        <td>{{ tutor.user.first_name }} {{ tutor.user.last_name }}</td>
+                        
+                        <!-- Subject -->
+                        <td>{{ tutor.get_subjects_display }}</td>
+                        
+                        <!-- Availability -->
+                        <td>
+                            {% if tutor.availability %}
+                                <ul class="list-unstyled">
+                                    {% for schedule in tutor.availability %}
+                                    <li>{{ schedule.day_of_week }}: {{ schedule.start_time|time:"H:i" }} - {{ schedule.end_time|time:"H:i" }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                Not specified
+                            {% endif %}
+                        </td>
+                        
+                        <!-- Allocated Lessons -->
+                        <td>
+                            {% if tutor.user.allocated_lessons %}
+                                <ul class="list-unstyled">
+                                    {% for lesson in tutor.user.allocated_lessons %}
+                                    <li>{{ lesson.date|date:"D, M j" }} - {{ lesson.time|time:"H:i" }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                No lessons allocated.
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center">No tutors found matching your criteria.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

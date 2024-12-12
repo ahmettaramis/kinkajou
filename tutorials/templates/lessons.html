@@ -1,0 +1,35 @@
+{% extends "base_content.html" %}
+
+{% block content %}
+<h2>Lessons</h2>
+<b>Lessons without generated invoices will have the option to invoice them. Please invoice these lessons.</b>
+
+<table>
+    <tr>
+        <th>Tutor</th>
+        <th>Student</th>
+        <th>Description</th>
+        <th>Scheduled Time</th>
+        <th>Action</th>
+    </tr>
+    {% for lesson in lessons %}
+    <tr>
+        <td>{{ lesson.tutor }}</td>
+        <td>{{ lesson.student }}</td>
+        <td>{{ lesson.description }}</td>
+        <td>{{ lesson.time }}</td>
+        <td>
+            {% if lesson.invoice.count == 0 %}
+            <form action="{% url 'generate_invoice' lesson.id %}" method="post">
+                {% csrf_token %}
+                <button type="submit">Generate Invoice</button>
+            </form>
+            {% else %}
+            <span>Invoice Generated</span>
+            {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+{% endblock %}

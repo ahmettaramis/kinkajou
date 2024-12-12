@@ -2,6 +2,9 @@
 {% block body %}
   {% include 'partials/navbar.html' %}
   {% include 'partials/messages.html' %}
+    <button onclick="history.back()" class="btn btn-primary position-absolute top-5 end-0 m-3" style="right: 10px;">
+        < Back
+    </button>
   {% block content %}
   {% endblock %}
 {% endblock %}

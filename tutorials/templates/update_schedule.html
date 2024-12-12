@@ -1,0 +1,50 @@
+{% extends 'base_content.html' %}
+{% block content %}
+<div class = "container">
+    <div class = "row">
+        <div class = "col-12">
+
+        
+        <h1>Update Availability</h1>
+
+        <h2>Existing Availability</h2>
+        <form method="post">
+            {% csrf_token %}
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th scope="col">Day of the Week</th>
+                        <th scope="col">Start Time</th>
+                        <th scope="col">End Time</th>
+                        <th scope="col">Delete</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for slot in availability %}
+                    <tr>
+                        <td>{{ slot.day_of_week }}</td>
+                        <td>{{ slot.start_time }}</td>
+                        <td>{{ slot.end_time }}</td>
+                        <td>
+                            <button type="submit" class="btn btn-danger" name="delete_schedule" value="{{ slot.id }}">Delete</button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4">No availability added yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </form>
+
+        <h2>Add New Availability</h2>
+        <form method="post">
+            {% csrf_token %}
+            {% include 'partials/bootstrap_form.html' with form=form %}
+            <button type="submit" class="btn btn-primary" name="add_schedule">Add Availability</button>
+        </form>
+    </div>
+</div>
+</div>
+    {% endblock %}

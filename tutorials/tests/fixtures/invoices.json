@@ -1,0 +1,22 @@
+[
+    {
+        "model": "tutorials.invoice",
+        "pk": 1,
+        "fields": {
+            "lesson_request": 1,
+            "amount": "150.00",
+            "is_paid": true,
+            "created_at": "2024-12-05T12:00:00Z"
+        }
+    },
+    {
+        "model": "tutorials.invoice",
+        "pk": 2,
+        "fields": {
+            "lesson_request": 2,
+            "amount": "200.00",
+            "is_paid": false,
+            "created_at": "2024-12-06T15:00:00Z"
+        }
+    }
+]

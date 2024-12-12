@@ -15,8 +15,9 @@ class UserFormTestCase(TestCase):
         self.form_input = {
             'first_name': 'Jane',
             'last_name': 'Doe',
-            'username': '@janedoe',
-            'email': 'janedoe@example.org',
+            'username': '@janedoe2',
+            'email': 'janedoe2@example.org',
+            'role': 'student'
         }
 
     def test_form_has_necessary_fields(self):
@@ -25,26 +26,54 @@ class UserFormTestCase(TestCase):
         self.assertIn('last_name', form.fields)
         self.assertIn('username', form.fields)
         self.assertIn('email', form.fields)
+        self.assertIn('role', form.fields)
         email_field = form.fields['email']
         self.assertTrue(isinstance(email_field, forms.EmailField))
+        role_field = form.fields['role']
+        self.assertTrue(isinstance(role_field, forms.ChoiceField))
 
     def test_valid_user_form(self):
         form = UserForm(data=self.form_input)
         self.assertTrue(form.is_valid())
 
-    def test_form_uses_model_validation(self):
-        self.form_input['username'] = 'badusername'
+    def test_form_uses_model_validation_for_username(self):
+        self.form_input['username'] = 'badusername'  # Invalid due to missing '@'
         form = UserForm(data=self.form_input)
         self.assertFalse(form.is_valid())
+        self.assertIn('username', form.errors)
+
+    def test_form_uses_model_validation_for_email(self):
+        self.form_input['email'] = 'invalid-email'  # Invalid email format
+        form = UserForm(data=self.form_input)
+        self.assertFalse(form.is_valid())
+        self.assertIn('email', form.errors)
+
+    def test_form_uses_model_validation_for_role(self):
+        self.form_input['role'] = 'invalid_role'  # Not in ROLE_CHOICES
+        form = UserForm(data=self.form_input)
+        self.assertFalse(form.is_valid())
+        self.assertIn('role', form.errors)
 
     def test_form_must_save_correctly(self):
+        unique_username = '@janedoe2'
+        unique_email = 'janedoe2@example.org'
+
+        self.form_input['username'] = unique_username
+        self.form_input['email'] = unique_email
+
         user = User.objects.get(username='@johndoe')
         form = UserForm(instance=user, data=self.form_input)
+
+        self.assertTrue(form.is_valid(), f"Form errors: {form.errors}")
+
         before_count = User.objects.count()
-        form.save()
+        saved_user = form.save()
         after_count = User.objects.count()
+
         self.assertEqual(after_count, before_count)
-        self.assertEqual(user.username, '@janedoe')
-        self.assertEqual(user.first_name, 'Jane')
-        self.assertEqual(user.last_name, 'Doe')
-        self.assertEqual(user.email, 'janedoe@example.org')
+
+        self.assertEqual(saved_user.username, unique_username)
+        self.assertEqual(saved_user.first_name, 'Jane')
+        self.assertEqual(saved_user.last_name, 'Doe')
+        self.assertEqual(saved_user.email, unique_email)
+        self.assertEqual(saved_user.role, 'student')
