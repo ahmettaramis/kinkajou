@@ -15,8 +15,8 @@ class UserFormTestCase(TestCase):
         self.form_input = {
             'first_name': 'Jane',
             'last_name': 'Doe',
-            'username': '@janedoe',
-            'email': 'janedoe@example.org',
+            'username': '@janedoe2',
+            'email': 'janedoe2@example.org',
             'role': 'student'
         }
 
@@ -55,14 +55,25 @@ class UserFormTestCase(TestCase):
         self.assertIn('role', form.errors)
 
     def test_form_must_save_correctly(self):
+        unique_username = '@janedoe2'
+        unique_email = 'janedoe2@example.org'
+
+        self.form_input['username'] = unique_username
+        self.form_input['email'] = unique_email
+
         user = User.objects.get(username='@johndoe')
         form = UserForm(instance=user, data=self.form_input)
+
+        self.assertTrue(form.is_valid(), f"Form errors: {form.errors}")
+
         before_count = User.objects.count()
         saved_user = form.save()
         after_count = User.objects.count()
-        self.assertEqual(after_count, before_count)  # No new user should be created
-        self.assertEqual(saved_user.username, '@janedoe')
+
+        self.assertEqual(after_count, before_count)
+
+        self.assertEqual(saved_user.username, unique_username)
         self.assertEqual(saved_user.first_name, 'Jane')
         self.assertEqual(saved_user.last_name, 'Doe')
-        self.assertEqual(saved_user.email, 'janedoe@example.org')
+        self.assertEqual(saved_user.email, unique_email)
         self.assertEqual(saved_user.role, 'student')
