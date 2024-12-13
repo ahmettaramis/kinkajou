@@ -9,7 +9,7 @@ The members of the team are:
 - *Ahmet Taramis*
 
 ## Project structure
-The project is called `task_manager`.  It currently consists of a single app `tasks`.
+The project is called `task_manager`.  It currently consists of a single app `tutorials`.
 
 ## Deployed version of the application
 The deployed version of the application can be found at [link_to_project](https://vrajparmar2003.pythonanywhere.com).  
@@ -41,6 +41,7 @@ $ python3 manage.py seed
 ```
 
 Run all tests with:
+
 ```
 $ python3 manage.py test
 ```
@@ -48,8 +49,8 @@ $ python3 manage.py test
 ## Sources
 The packages used by this application are specified in `requirements.txt`
 
-## AI/Website Usage Declaration
-**Vraj Parmar:**
+### AI/Website Usage Declaration
+#### Vraj Parmar:
 - I used ChatGPT to guide the development of the update_request_status function in tutorials/views.py. It helped me map out the logical steps required to allocate or unallocate lesson requests, which subsequently create or cancel AllocatedLessons.
 
 - To ensure comprehensive test coverage, I consulted ChatGPT for identifying any missing scenarios in the following test files:
@@ -72,10 +73,10 @@ The packages used by this application are specified in `requirements.txt`
 - Leveraging ChatGPT significantly enhanced my understanding of writing and debugging tests, identifying logical errors, and ensuring the functionality of the app is well-tested.
 - I referred to [W3Schools](https://www.w3schools.com/jsref/met_his_back.asp) for the HTML code used to implement the back button throughout the app.
 
-**Ahmet Taramis:**
+#### Ahmet Taramis:
 - I have used AI to ask it any test scenario I could add which I have missed in the test files I have written. It has recommended me to add the following test scenarios in each file, for which I implemented it in these functions:
   - test_lesson_request_views.py:
-  	- test_student_view_unauthenticated()
+  - test_student_view_unauthenticated()
   	- test_admin_view_unauthenticated()
   	- test_create_request_invalid_data()
   	- test_tutor_cannot_access_admin_view()
@@ -86,11 +87,13 @@ The packages used by this application are specified in `requirements.txt`
   	- test_form_with_empty_data()
   	- test_form_with_partial_data()
   	- test_form_tutor_not_selected()
+  - All code was implemented by myself to fit the project logic, only idea for tests were given.
 
-- I have used https://www.w3schools.com/django/ for general help on Django syntax and its tools.
+- I have used https://www.w3schools.com/django/ & https://docs.djangoproject.com/en/5.1/topics/ for general help and understanding of Django syntax and its tools.
+- I have used https://www.w3schools.com/html/default.asp for a deeper understanding of HTML for templates
 - I have used chatGPT for a deeper understanding of git and how to use the CLI to manage our project.
 
-**Raphael Ahiable**
+#### Raphael Ahiable
 - I consulted ChatGPT to ensure test classes thoroughly covered views and forms I had written. It was also used to debug these test classes. 
 
 - The following test classes were affected by this:
@@ -102,3 +105,23 @@ The packages used by this application are specified in `requirements.txt`
 
 - I used AI in this project to cement gaps in my knowledge of using the Django framework such as understanding the Django ORM, database and file directory.
 - I have used the Django forums (forum.djangoproject.com) for general debugging purposes.
+
+#### Shankhi Sinha
+- Function and Test Development:
+  - Used ChatGPT to generate example test cases for:  
+    - test_tutor_list_view.py  
+    - test_tutor_update_availability_view.py  
+    - test_tutor_model.py  
+    - test_student_model.py  
+    - test_schedule_model.py  
+    - All outputs were reviewed and manually adapted to fit project requirements.
+
+- HTML Refactoring: 
+  - Leveraged ChatGPT to improve the cleanliness and reduce redundant code in:  
+    - tutor_list.html  
+    - update_schedule.html
+
+- External References:
+  - Referred to the following resources for additional guidance:  
+    - GeeksforGeeks  
+    - Official Django Documentation
