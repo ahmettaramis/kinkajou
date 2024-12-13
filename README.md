@@ -69,9 +69,7 @@ The packages used by this application are specified in `requirements.txt`
   - test_wsgi.py
 
 - I refactored the is_admin, is_tutor, and is_student functions, originally written as simple functions in tutorials/views.py, into proper decorators placed in helper.py. ChatGPT assisted in this restructuring to align with best practices.
-
 - Leveraging ChatGPT significantly enhanced my understanding of writing and debugging tests, identifying logical errors, and ensuring the functionality of the app is well-tested.
-
 - I referred to [W3Schools](https://www.w3schools.com/jsref/met_his_back.asp) for the HTML code used to implement the back button throughout the app.
 
 **Ahmet Taramis:**
@@ -91,3 +89,16 @@ The packages used by this application are specified in `requirements.txt`
 
 - I have used https://www.w3schools.com/django/ for general help on Django syntax and its tools.
 - I have used chatGPT for a deeper understanding of git and how to use the CLI to manage our project.
+
+**Raphael Ahiable**
+- I consulted ChatGPT to ensure test classes thoroughly covered views and forms I had written. It was also used to debug these test classes. 
+
+- The following test classes were affected by this:
+  - InvoiceViewTests (test_invoice_view.py)
+  - InvoiceFormTestCase (test_invoice_form.py)
+
+- For the following test class, ChatGPT was only used for debugging purposes:
+  - InvoiceModelTest (test_invoice_model.py)
+
+- I used AI in this project to cement gaps in my knowledge of using the Django framework such as understanding the Django ORM, database and file directory.
+- I have used the Django forums (forum.djangoproject.com) for general debugging purposes.
